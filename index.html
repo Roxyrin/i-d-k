@@ -71,10 +71,6 @@
             box-shadow: 0 0 25px rgba(56, 189, 248, 0.3);
         }
 
-        .glow-mythic {
-            box-shadow: 0 0 30px rgba(239, 68, 68, 0.45);
-        }
-
         ::-webkit-scrollbar {
             width: 4px;
             height: 4px;
@@ -105,6 +101,23 @@
         }
         .animate-float {
             animation: float 4s infinite ease-in-out;
+        }
+
+        .nft-img-container {
+            width: 100%;
+            height: 90px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            border-radius: 12px;
+            position: relative;
+        }
+        .nft-img-container img {
+            max-height: 100%;
+            max-width: 100%;
+            object-fit: contain;
+            filter: drop-shadow(0 4px 10px rgba(0,0,0,0.5));
         }
     </style>
 </head>
@@ -267,11 +280,11 @@
         <section id="tab-market" class="p-4 hidden">
             <div class="flex items-center justify-between mb-4">
                 <div>
-                    <h2 class="text-lg font-bold text-white">Маркет NFT & Мемов</h2>
-                    <p class="text-xs text-gray-400">Покупайте Дошираки, Pepe и Telegram NFT за 💎 ICES</p>
+                    <h2 class="text-lg font-bold text-white">Маркет NFT & Подарков</h2>
+                    <p class="text-xs text-gray-400">Покупайте и пополняйте маркет предметами за 💎 ICES</p>
                 </div>
                 <div class="text-xs bg-cyan-950/60 px-2.5 py-1 rounded-lg border border-cyan-500/30 text-cyan-300 font-bold">
-                    Официальный Маркет
+                    Маркет
                 </div>
             </div>
 
@@ -304,7 +317,7 @@
                         <input type="checkbox" id="adminToggle" onchange="toggleAdminOverride(this.checked)" class="toggle-checkbox rounded bg-gray-800">
                     </label>
                 </div>
-                <p class="text-xs text-gray-300">Доступ зарезервирован для <strong class="text-red-400">@yung_roxy</strong>. Полный контроль баланса и маркета.</p>
+                <p class="text-xs text-gray-300">Управление маркетом и выдача балансов для <strong class="text-red-400">@yung_roxy</strong>.</p>
             </div>
 
             <div class="space-y-4">
@@ -322,28 +335,13 @@
                     </div>
                 </div>
 
-                <!-- Grant NFT directly -->
+                <!-- Add Custom Real Photo NFT to Market -->
                 <div class="glass-panel p-4 rounded-xl border border-white/10">
                     <h3 class="text-sm font-bold text-white mb-3 flex items-center gap-2">
-                        <i class="fa-solid fa-gift text-purple-400"></i> Выдать NFT в инвентарь
+                        <i class="fa-solid fa-plus-circle text-green-400"></i> Пополнить Маркет новым NFT (Только Админ)
                     </h3>
                     <div class="space-y-2">
-                        <select id="adminNftSelect" class="w-full bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-purple-500">
-                            <!-- Populated dynamically -->
-                        </select>
-                        <button onclick="adminGrantNFT()" class="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-2.5 rounded-lg text-xs transition-colors shadow-md">
-                            Выдать NFT в инвентарь
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Add Custom NFT to Market -->
-                <div class="glass-panel p-4 rounded-xl border border-white/10">
-                    <h3 class="text-sm font-bold text-white mb-3 flex items-center gap-2">
-                        <i class="fa-solid fa-plus-circle text-green-400"></i> Добавить новый NFT в Маркет
-                    </h3>
-                    <div class="space-y-2">
-                        <input type="text" id="adminNewNftName" placeholder="Название (напр. NFT Доширак Сырный)" class="w-full bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-xs text-white placeholder-gray-500 focus:outline-none">
+                        <input type="text" id="adminNewNftName" placeholder="Название (напр. Telegram Star Gift Red)" class="w-full bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-xs text-white placeholder-gray-500 focus:outline-none">
                         <div class="grid grid-cols-2 gap-2">
                             <input type="number" id="adminNewNftPrice" placeholder="Цена в ICES" class="bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-xs text-white placeholder-gray-500 focus:outline-none">
                             <select id="adminNewNftRarity" class="bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-xs text-white focus:outline-none">
@@ -360,9 +358,9 @@
                             <option value="telegram">📱 Telegram NFT</option>
                             <option value="gift">🌟 Stars Gift</option>
                         </select>
-                        <input type="text" id="adminNewNftIcon" placeholder="Эмодзи / Иконка (напр. 🍜, 🐸, 👑)" class="w-full bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-xs text-white placeholder-gray-500 focus:outline-none">
+                        <input type="text" id="adminNewNftImage" placeholder="URL Картинки (https://...)" class="w-full bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-xs text-white placeholder-gray-500 focus:outline-none">
                         <button onclick="adminCreateMarketNFT()" class="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-2.5 rounded-lg text-xs transition-colors shadow-md">
-                            Добавить в Маркет
+                            Добавить предмет в Маркет
                         </button>
                     </div>
                 </div>
@@ -431,85 +429,12 @@
 
     <!-- APPLICATION LOGIC SCRIPT -->
     <script>
-        // Web Audio Synthesizer
-        const AudioContext = window.AudioContext || window.webkitAudioContext;
-        let audioCtx = null;
-
-        function initAudio() {
-            if (!audioCtx) audioCtx = new AudioContext();
-        }
-
-        function playSound(type) {
-            try {
-                initAudio();
-                if (!audioCtx) return;
-
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-
-                const now = audioCtx.currentTime;
-
-                if (type === 'tick') {
-                    osc.type = 'sine';
-                    osc.frequency.setValueAtTime(450, now);
-                    osc.frequency.exponentialRampToValueAtTime(180, now + 0.04);
-                    gain.gain.setValueAtTime(0.06, now);
-                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
-                    osc.start(now);
-                    osc.stop(now + 0.04);
-                } else if (type === 'win') {
-                    osc.type = 'triangle';
-                    osc.frequency.setValueAtTime(440, now);
-                    osc.frequency.setValueAtTime(554.37, now + 0.1);
-                    osc.frequency.setValueAtTime(659.25, now + 0.2);
-                    osc.frequency.setValueAtTime(880, now + 0.3);
-                    gain.gain.setValueAtTime(0.18, now);
-                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.65);
-                    osc.start(now);
-                    osc.stop(now + 0.65);
-                } else if (type === 'fail') {
-                    osc.type = 'sawtooth';
-                    osc.frequency.setValueAtTime(220, now);
-                    osc.frequency.linearRampToValueAtTime(70, now + 0.35);
-                    gain.gain.setValueAtTime(0.2, now);
-                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
-                    osc.start(now);
-                    osc.stop(now + 0.35);
-                }
-            } catch(e) {}
-        }
-
-        // FULL EXTENDED CATALOG INCLUDING DOSHIRAK, PEPE, MEMES & TG COLLECTIBLES
-        const CATALOG_DATABASE = [
-            // Doshirak NFT Series
-            { id: 'nft_dosh_1', name: 'NFT Доширак Куриный', price: 1200, rarity: 'common', category: 'doshirak', icon: '🍜', color: '#9ca3af' },
-            { id: 'nft_dosh_2', name: 'NFT Доширак Говяжий', price: 2500, rarity: 'rare', category: 'doshirak', icon: '🌶️', color: '#3b82f6' },
-            { id: 'nft_dosh_3', name: 'NFT Доширак Сырный XL', price: 6000, rarity: 'epic', category: 'doshirak', icon: '🧀', color: '#a855f7' },
-            { id: 'nft_dosh_4', name: 'NFT Золотой Доширак', price: 35000, rarity: 'legendary', category: 'doshirak', icon: '✨', color: '#eab308' },
-            { id: 'nft_dosh_5', name: 'NFT Святой Доширак Илона', price: 120000, rarity: 'mythic', category: 'doshirak', icon: '🔥', color: '#ef4444' },
-
-            // Pepe & Memes NFT Series
-            { id: 'nft_pepe_1', name: 'Sad Frog Pepe NFT', price: 1800, rarity: 'common', category: 'pepe', icon: '🐸', color: '#9ca3af' },
-            { id: 'nft_pepe_2', name: 'Rare Smug Pepe', price: 5000, rarity: 'rare', category: 'pepe', icon: '😏', color: '#3b82f6' },
-            { id: 'nft_pepe_3', name: 'Pepe The King NFT', price: 18000, rarity: 'epic', category: 'pepe', icon: '👑', color: '#a855f7' },
-            { id: 'nft_pepe_4', name: 'NFT Cheems Doge', price: 24000, rarity: 'legendary', category: 'pepe', icon: '🐕', color: '#eab308' },
-            { id: 'nft_pepe_5', name: 'Mythic Pepe Diamond', price: 95000, rarity: 'mythic', category: 'pepe', icon: '💎', color: '#ef4444' },
-
-            // Telegram Collectibles
-            { id: 'nft_tg_1', name: '+888 0123 4567', price: 3200, rarity: 'common', category: 'telegram', icon: '📱', color: '#9ca3af' },
-            { id: 'nft_tg_2', name: '+888 7777 8888', price: 14000, rarity: 'rare', category: 'telegram', icon: '📱', color: '#3b82f6' },
-            { id: 'nft_tg_3', name: '@durov', price: 250000, rarity: 'mythic', category: 'telegram', icon: '👑', color: '#ef4444' },
-            { id: 'nft_tg_4', name: '@telegram', price: 180000, rarity: 'mythic', category: 'telegram', icon: '⚡', color: '#ef4444' },
-            { id: 'nft_tg_5', name: 'TON Diamond NFT', price: 28000, rarity: 'epic', category: 'telegram', icon: '💎', color: '#a855f7' },
-            { id: 'nft_tg_6', name: 'Telegram Duck #042', price: 42000, rarity: 'legendary', category: 'telegram', icon: '🦆', color: '#eab308' },
-            { id: 'nft_tg_7', name: 'Telegram Spotty Dog', price: 68000, rarity: 'legendary', category: 'telegram', icon: '🐶', color: '#eab308' },
-
-            // Telegram Stars Gifts
-            { id: 'nft_gift_1', name: 'Telegram Red Star Gift', price: 2000, rarity: 'common', category: 'gift', icon: '🌟', color: '#9ca3af' },
-            { id: 'nft_gift_2', name: 'Telegram Golden Star Gift', price: 8500, rarity: 'rare', category: 'gift', icon: '⭐', color: '#3b82f6' },
-            { id: 'nft_gift_3', name: 'Premium Stars Gift Box', price: 22000, rarity: 'epic', category: 'gift', icon: '🎁', color: '#a855f7' }
+        // High quality photo assets for Telegram Gifts, Doshirak and Pepe
+        const DEFAULT_TEMPLATES = [
+            { id: 'tmpl_1', name: 'Telegram Star Gift Red', price: 2500, rarity: 'rare', category: 'gift', image: 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?w=300&auto=format&fit=crop&q=80' },
+            { id: 'tmpl_2', name: 'NFT Доширак Куриный', price: 1500, rarity: 'common', category: 'doshirak', image: 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=300&auto=format&fit=crop&q=80' },
+            { id: 'tmpl_3', name: 'Pepe King Meme NFT', price: 12000, rarity: 'legendary', category: 'pepe', image: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?w=300&auto=format&fit=crop&q=80' },
+            { id: 'tmpl_4', name: 'Anonymous Number +888', price: 8000, rarity: 'epic', category: 'telegram', image: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=300&auto=format&fit=crop&q=80' }
         ];
 
         // State Management
@@ -517,10 +442,10 @@
             currentUser: {
                 username: '@user',
                 isAdmin: false,
-                balance: 10000 // Initial bonus
+                balance: 10000 // Starter bonus
             },
             inventory: [],
-            market: [...CATALOG_DATABASE],
+            market: [], // EMPTY MARKET BY DEFAULT - MUST BE POPULATED BY ADMIN
             selectedSourceItem: null,
             selectedTargetItem: null,
             rollDirection: 'under',
@@ -552,17 +477,17 @@
             drawWheel(0, 0, false);
             renderInventory();
             renderMarket();
-            populateAdminNFTDropdown();
         }
 
         function toggleAdminOverride(checked) {
             appState.currentUser.isAdmin = checked;
             renderUserInfo();
+            renderMarket();
             showToast(checked ? "Демо Админ активирован!" : "Демо Админ деактивирован");
         }
 
         function saveState() {
-            localStorage.setItem('tg_nft_upgrader_state_v2', JSON.stringify({
+            localStorage.setItem('tg_nft_upgrader_state_v3', JSON.stringify({
                 balance: appState.currentUser.balance,
                 inventory: appState.inventory,
                 market: appState.market
@@ -570,20 +495,28 @@
         }
 
         function loadState() {
-            const saved = localStorage.getItem('tg_nft_upgrader_state_v2');
+            const saved = localStorage.getItem('tg_nft_upgrader_state_v3');
             if (saved) {
                 try {
                     const parsed = JSON.parse(saved);
                     appState.currentUser.balance = parsed.balance !== undefined ? parsed.balance : 10000;
                     appState.inventory = parsed.inventory || [];
-                    if (parsed.market && parsed.market.length) appState.market = parsed.market;
+                    appState.market = parsed.market || [];
                 } catch(e) {}
             } else {
-                // Initial Starter Pack for demo play
+                // Initial Starter Pack given as bonus in Inventory (Market is empty)
                 appState.inventory = [
-                    { ...CATALOG_DATABASE[0], instanceId: 'inv_' + Date.now() + '_1' },
-                    { ...CATALOG_DATABASE[5], instanceId: 'inv_' + Date.now() + '_2' }
+                    { 
+                        id: 'starter_1', 
+                        name: 'NFT Доширак Сытный', 
+                        price: 1500, 
+                        rarity: 'common', 
+                        category: 'doshirak', 
+                        image: 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=300&auto=format&fit=crop&q=80',
+                        instanceId: 'inv_' + Date.now() + '_1' 
+                    }
                 ];
+                appState.market = []; // MARKET STARTS EMPTY ACCORDING TO REQUIREMENTS
                 saveState();
             }
         }
@@ -981,14 +914,150 @@
             const container = document.getElementById(`${slot}ItemContainer`);
             const priceEl = document.getElementById(`${slot}ItemPrice`);
 
+            const imgUrl = item.image || 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?w=300&auto=format&fit=crop&q=80';
+
             container.innerHTML = `
-                <div class="text-3xl mb-1 transition-transform group-hover:scale-110">${item.icon}</div>
+                <div class="w-16 h-16 rounded-xl overflow-hidden mb-1 flex items-center justify-center bg-black/40 border border-white/10">
+                    <img src="${imgUrl}" class="w-full h-full object-cover" alt="${item.name}">
+                </div>
                 <span class="text-xs font-bold text-white text-center truncate max-w-full">${item.name}</span>
                 <span class="text-[10px] uppercase font-semibold text-gray-400">${item.rarity}</span>
             `;
 
             priceEl.textContent = `${item.price.toLocaleString('ru-RU')} 💎`;
             priceEl.classList.remove('hidden');
+        }
+
+        function createItemCardHTML(item, onClickFn) {
+            const div = document.createElement('div');
+            div.className = `glass-card p-2.5 rounded-xl border flex flex-col items-center justify-between cursor-pointer transition-all hover:border-cyan-400/50 relative overflow-hidden`;
+            
+            let rarityColor = "#9ca3af";
+            if (item.rarity === 'rare') rarityColor = "#3b82f6";
+            if (item.rarity === 'epic') rarityColor = "#a855f7";
+            if (item.rarity === 'legendary') rarityColor = "#eab308";
+            if (item.rarity === 'mythic') rarityColor = "#ef4444";
+
+            div.style.borderColor = `${rarityColor}40`;
+            const imgUrl = item.image || 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?w=300&auto=format&fit=crop&q=80';
+
+            div.innerHTML = `
+                <div class="absolute top-0 right-0 w-12 h-12 opacity-15 rounded-full blur-lg" style="background:${rarityColor}"></div>
+                <div class="nft-img-container mb-2">
+                    <img src="${imgUrl}" alt="${item.name}" onerror="this.src='https://images.unsplash.com/photo-1549465220-1a8b9238cd48?w=300&auto=format&fit=crop&q=80'">
+                </div>
+                <div class="w-full text-center">
+                    <div class="text-xs font-bold text-white truncate">${item.name}</div>
+                    <div class="text-[10px] uppercase font-bold tracking-wider" style="color:${rarityColor}">${item.rarity}</div>
+                </div>
+                <div class="mt-2 text-xs font-extrabold text-cyan-300 bg-cyan-950/60 px-2 py-0.5 rounded-md border border-cyan-500/20">
+                    ${item.price.toLocaleString('ru-RU')} 💎
+                </div>
+            `;
+
+            div.addEventListener('click', onClickFn);
+            return div;
+        }
+
+        function renderMarket() {
+            const grid = document.getElementById('marketGrid');
+            grid.innerHTML = '';
+
+            const itemsToDisplay = currentMarketFilter === 'all' 
+                ? appState.market 
+                : appState.market.filter(i => i.category === currentMarketFilter);
+
+            if (itemsToDisplay.length === 0) {
+                grid.innerHTML = `
+                    <div class="col-span-full py-16 flex flex-col items-center justify-center text-center">
+                        <div class="w-16 h-16 rounded-full bg-gray-800/60 flex items-center justify-center text-gray-500 text-2xl mb-3">
+                            <i class="fa-solid fa-store-slash"></i>
+                        </div>
+                        <h3 class="text-base font-bold text-white">Маркет пока пуст</h3>
+                        <p class="text-xs text-gray-400 max-w-xs mt-1 mb-4">Пополнять маркет товарами может только <strong class="text-cyan-400">@yung_roxy</strong> из админ-панели.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            itemsToDisplay.forEach(item => {
+                const div = document.createElement('div');
+                let rarityColor = "#9ca3af";
+                if (item.rarity === 'rare') rarityColor = "#3b82f6";
+                if (item.rarity === 'epic') rarityColor = "#a855f7";
+                if (item.rarity === 'legendary') rarityColor = "#eab308";
+                if (item.rarity === 'mythic') rarityColor = "#ef4444";
+
+                div.className = `glass-card p-3 rounded-2xl border flex flex-col items-center justify-between relative overflow-hidden`;
+                div.style.borderColor = `${rarityColor}40`;
+
+                const imgUrl = item.image || 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?w=300&auto=format&fit=crop&q=80';
+
+                let deleteBtn = appState.currentUser.isAdmin ? `
+                    <button onclick="adminDeleteMarketItem('${item.id}'); event.stopPropagation();" class="absolute top-2 right-2 bg-red-600/80 hover:bg-red-600 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs shadow z-20">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                ` : '';
+
+                div.innerHTML = `
+                    ${deleteBtn}
+                    <div class="nft-img-container my-1">
+                        <img src="${imgUrl}" alt="${item.name}" onerror="this.src='https://images.unsplash.com/photo-1549465220-1a8b9238cd48?w=300&auto=format&fit=crop&q=80'">
+                    </div>
+                    <div class="w-full text-center mb-2">
+                        <div class="text-xs font-bold text-white truncate">${item.name}</div>
+                        <div class="text-[10px] uppercase font-extrabold tracking-wide" style="color:${rarityColor}">${item.rarity}</div>
+                    </div>
+                    <button onclick="buyMarketItem('${item.id}')" class="w-full py-2 bg-cyan-500/15 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/40 font-extrabold text-xs rounded-xl flex items-center justify-center gap-1 transition-all">
+                        <span>Купить</span>
+                        <span>${item.price.toLocaleString('ru-RU')} 💎</span>
+                    </button>
+                `;
+
+                grid.appendChild(div);
+            });
+        }
+
+        // Admin Create Custom NFT for Market with Real Images
+        function adminCreateMarketNFT() {
+            if (!appState.currentUser.isAdmin) return;
+
+            const name = document.getElementById('adminNewNftName').value.trim();
+            const price = parseInt(document.getElementById('adminNewNftPrice').value);
+            const rarity = document.getElementById('adminNewNftRarity').value;
+            const category = document.getElementById('adminNewNftCategory').value;
+            const image = document.getElementById('adminNewNftImage').value.trim() || 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?w=300&auto=format&fit=crop&q=80';
+
+            if (!name || !price) {
+                showToast("Заполните название и цену!");
+                return;
+            }
+
+            const newNft = {
+                id: 'market_nft_' + Date.now(),
+                name,
+                price,
+                rarity,
+                category,
+                image
+            };
+
+            appState.market.unshift(newNft);
+            saveState();
+            renderMarket();
+
+            showToast(`Товар "${name}" добавлен в Маркет!`);
+            document.getElementById('adminNewNftName').value = '';
+            document.getElementById('adminNewNftPrice').value = '';
+            document.getElementById('adminNewNftImage').value = '';
+        }
+
+        function adminDeleteMarketItem(id) {
+            if (!appState.currentUser.isAdmin) return;
+            appState.market = appState.market.filter(i => i.id !== id);
+            saveState();
+            renderMarket();
+            showToast("Товар удалён из Маркета!");
         }
 
         function resetSlotUI(slot) {
@@ -1248,4 +1317,3 @@
     </script>
 </body>
 </html>
-```
