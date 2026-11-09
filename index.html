@@ -1,4 +1,3 @@
-```html
 <!DOCTYPE html>
 <html lang="ru" class="dark">
 <head>
@@ -424,5 +423,828 @@
 
             <div id="resultNftCard" class="w-full glass-card p-3 rounded-xl mb-5 flex items-center gap-3 z-10 border border-white/10"></div>
 
-            <button onclick="
-```
+            <button onclick="closeResultModal()" class="w-full py-3 bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-extrabold text-sm rounded-xl shadow-lg z-10">
+                ПРОДОЛЖИТЬ
+            </button>
+        </div>
+    </div>
+
+    <!-- APPLICATION LOGIC SCRIPT -->
+    <script>
+        // Web Audio Synthesizer
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        let audioCtx = null;
+
+        function initAudio() {
+            if (!audioCtx) audioCtx = new AudioContext();
+        }
+
+        function playSound(type) {
+            try {
+                initAudio();
+                if (!audioCtx) return;
+
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                const now = audioCtx.currentTime;
+
+                if (type === 'tick') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(450, now);
+                    osc.frequency.exponentialRampToValueAtTime(180, now + 0.04);
+                    gain.gain.setValueAtTime(0.06, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+                    osc.start(now);
+                    osc.stop(now + 0.04);
+                } else if (type === 'win') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(440, now);
+                    osc.frequency.setValueAtTime(554.37, now + 0.1);
+                    osc.frequency.setValueAtTime(659.25, now + 0.2);
+                    osc.frequency.setValueAtTime(880, now + 0.3);
+                    gain.gain.setValueAtTime(0.18, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.65);
+                    osc.start(now);
+                    osc.stop(now + 0.65);
+                } else if (type === 'fail') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(220, now);
+                    osc.frequency.linearRampToValueAtTime(70, now + 0.35);
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+                    osc.start(now);
+                    osc.stop(now + 0.35);
+                }
+            } catch(e) {}
+        }
+
+        // FULL EXTENDED CATALOG INCLUDING DOSHIRAK, PEPE, MEMES & TG COLLECTIBLES
+        const CATALOG_DATABASE = [
+            // Doshirak NFT Series
+            { id: 'nft_dosh_1', name: 'NFT Доширак Куриный', price: 1200, rarity: 'common', category: 'doshirak', icon: '🍜', color: '#9ca3af' },
+            { id: 'nft_dosh_2', name: 'NFT Доширак Говяжий', price: 2500, rarity: 'rare', category: 'doshirak', icon: '🌶️', color: '#3b82f6' },
+            { id: 'nft_dosh_3', name: 'NFT Доширак Сырный XL', price: 6000, rarity: 'epic', category: 'doshirak', icon: '🧀', color: '#a855f7' },
+            { id: 'nft_dosh_4', name: 'NFT Золотой Доширак', price: 35000, rarity: 'legendary', category: 'doshirak', icon: '✨', color: '#eab308' },
+            { id: 'nft_dosh_5', name: 'NFT Святой Доширак Илона', price: 120000, rarity: 'mythic', category: 'doshirak', icon: '🔥', color: '#ef4444' },
+
+            // Pepe & Memes NFT Series
+            { id: 'nft_pepe_1', name: 'Sad Frog Pepe NFT', price: 1800, rarity: 'common', category: 'pepe', icon: '🐸', color: '#9ca3af' },
+            { id: 'nft_pepe_2', name: 'Rare Smug Pepe', price: 5000, rarity: 'rare', category: 'pepe', icon: '😏', color: '#3b82f6' },
+            { id: 'nft_pepe_3', name: 'Pepe The King NFT', price: 18000, rarity: 'epic', category: 'pepe', icon: '👑', color: '#a855f7' },
+            { id: 'nft_pepe_4', name: 'NFT Cheems Doge', price: 24000, rarity: 'legendary', category: 'pepe', icon: '🐕', color: '#eab308' },
+            { id: 'nft_pepe_5', name: 'Mythic Pepe Diamond', price: 95000, rarity: 'mythic', category: 'pepe', icon: '💎', color: '#ef4444' },
+
+            // Telegram Collectibles
+            { id: 'nft_tg_1', name: '+888 0123 4567', price: 3200, rarity: 'common', category: 'telegram', icon: '📱', color: '#9ca3af' },
+            { id: 'nft_tg_2', name: '+888 7777 8888', price: 14000, rarity: 'rare', category: 'telegram', icon: '📱', color: '#3b82f6' },
+            { id: 'nft_tg_3', name: '@durov', price: 250000, rarity: 'mythic', category: 'telegram', icon: '👑', color: '#ef4444' },
+            { id: 'nft_tg_4', name: '@telegram', price: 180000, rarity: 'mythic', category: 'telegram', icon: '⚡', color: '#ef4444' },
+            { id: 'nft_tg_5', name: 'TON Diamond NFT', price: 28000, rarity: 'epic', category: 'telegram', icon: '💎', color: '#a855f7' },
+            { id: 'nft_tg_6', name: 'Telegram Duck #042', price: 42000, rarity: 'legendary', category: 'telegram', icon: '🦆', color: '#eab308' },
+            { id: 'nft_tg_7', name: 'Telegram Spotty Dog', price: 68000, rarity: 'legendary', category: 'telegram', icon: '🐶', color: '#eab308' },
+
+            // Telegram Stars Gifts
+            { id: 'nft_gift_1', name: 'Telegram Red Star Gift', price: 2000, rarity: 'common', category: 'gift', icon: '🌟', color: '#9ca3af' },
+            { id: 'nft_gift_2', name: 'Telegram Golden Star Gift', price: 8500, rarity: 'rare', category: 'gift', icon: '⭐', color: '#3b82f6' },
+            { id: 'nft_gift_3', name: 'Premium Stars Gift Box', price: 22000, rarity: 'epic', category: 'gift', icon: '🎁', color: '#a855f7' }
+        ];
+
+        // State Management
+        let appState = {
+            currentUser: {
+                username: '@user',
+                isAdmin: false,
+                balance: 10000 // Initial bonus
+            },
+            inventory: [],
+            market: [...CATALOG_DATABASE],
+            selectedSourceItem: null,
+            selectedTargetItem: null,
+            rollDirection: 'under',
+            winChance: 0,
+            isSpinning: false
+        };
+
+        let tg = window.Telegram ? window.Telegram.WebApp : null;
+
+        function initApp() {
+            if (tg) {
+                tg.ready();
+                tg.expand();
+                
+                if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+                    const tgUser = tg.initDataUnsafe.user;
+                    const username = tgUser.username ? `@${tgUser.username}` : (tgUser.first_name || '@user');
+                    appState.currentUser.username = username;
+                }
+            }
+
+            // Admin verification check for @yung_roxy
+            if (appState.currentUser.username.toLowerCase() === '@yung_roxy') {
+                appState.currentUser.isAdmin = true;
+            }
+
+            loadState();
+            renderUserInfo();
+            drawWheel(0, 0, false);
+            renderInventory();
+            renderMarket();
+            populateAdminNFTDropdown();
+        }
+
+        function toggleAdminOverride(checked) {
+            appState.currentUser.isAdmin = checked;
+            renderUserInfo();
+            showToast(checked ? "Демо Админ активирован!" : "Демо Админ деактивирован");
+        }
+
+        function saveState() {
+            localStorage.setItem('tg_nft_upgrader_state_v2', JSON.stringify({
+                balance: appState.currentUser.balance,
+                inventory: appState.inventory,
+                market: appState.market
+            }));
+        }
+
+        function loadState() {
+            const saved = localStorage.getItem('tg_nft_upgrader_state_v2');
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    appState.currentUser.balance = parsed.balance !== undefined ? parsed.balance : 10000;
+                    appState.inventory = parsed.inventory || [];
+                    if (parsed.market && parsed.market.length) appState.market = parsed.market;
+                } catch(e) {}
+            } else {
+                // Initial Starter Pack for demo play
+                appState.inventory = [
+                    { ...CATALOG_DATABASE[0], instanceId: 'inv_' + Date.now() + '_1' },
+                    { ...CATALOG_DATABASE[5], instanceId: 'inv_' + Date.now() + '_2' }
+                ];
+                saveState();
+            }
+        }
+
+        function renderUserInfo() {
+            document.getElementById('usernameDisplay').textContent = appState.currentUser.username;
+            document.getElementById('userAvatarText').textContent = appState.currentUser.username.replace('@','').substring(0,2).toUpperCase();
+            document.getElementById('userBalance').textContent = appState.currentUser.balance.toLocaleString('ru-RU');
+
+            const adminBadge = document.getElementById('adminBadge');
+            const adminNav = document.getElementById('nav-admin');
+            const adminToggle = document.getElementById('adminToggle');
+
+            if (appState.currentUser.isAdmin) {
+                adminBadge.classList.remove('hidden');
+                adminNav.classList.remove('hidden');
+                adminNav.classList.add('flex');
+                if (adminToggle) adminToggle.checked = true;
+            } else {
+                adminBadge.classList.add('hidden');
+                adminNav.classList.add('hidden');
+                adminNav.classList.remove('flex');
+            }
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('main > section').forEach(sec => sec.classList.add('hidden'));
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('text-cyan-400');
+                btn.classList.add('text-gray-400');
+            });
+
+            const activeTab = document.getElementById(`tab-${tabName}`);
+            const activeNav = document.getElementById(`nav-${tabName}`);
+
+            if (activeTab) activeTab.classList.remove('hidden');
+            if (activeNav) {
+                activeNav.classList.remove('text-gray-400');
+                activeNav.classList.add('text-cyan-400');
+            }
+
+            if (tabName === 'inventory') renderInventory();
+            if (tabName === 'market') renderMarket();
+        }
+
+        // ================= UPGRADER CANVAS LOGIC =================
+
+        const canvas = document.getElementById('upgradeCanvas');
+        const ctx = canvas.getContext('2d');
+
+        function calculateChance() {
+            if (!appState.selectedSourceItem || !appState.selectedTargetItem) {
+                appState.winChance = 0;
+                updateUpgraderUI();
+                drawWheel(0, 0, false);
+                return;
+            }
+
+            const srcPrice = appState.selectedSourceItem.price;
+            const targetPrice = appState.selectedTargetItem.price;
+
+            let chance = (srcPrice / targetPrice) * 100;
+            chance = Math.min(Math.max(chance, 1.00), 95.00);
+
+            appState.winChance = chance;
+            updateUpgraderUI();
+            drawWheel(chance, 0, false);
+        }
+
+        function setRollDirection(dir) {
+            appState.rollDirection = dir;
+            const btnUnder = document.getElementById('btnRollUnder');
+            const btnOver = document.getElementById('btnRollOver');
+
+            if (dir === 'under') {
+                btnUnder.className = "flex-1 py-1.5 text-xs font-bold rounded-lg transition-all bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow";
+                btnOver.className = "flex-1 py-1.5 text-xs font-bold rounded-lg transition-all text-gray-400 hover:text-white border border-transparent";
+            } else {
+                btnOver.className = "flex-1 py-1.5 text-xs font-bold rounded-lg transition-all bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow";
+                btnUnder.className = "flex-1 py-1.5 text-xs font-bold rounded-lg transition-all text-gray-400 hover:text-white border border-transparent";
+            }
+
+            updateUpgraderUI();
+            drawWheel(appState.winChance, 0, false);
+        }
+
+        function updateUpgraderUI() {
+            const chanceLabel = document.getElementById('chanceLabel');
+            const multiplierLabel = document.getElementById('multiplierLabel');
+            const statusText = document.getElementById('upgradeStatusText');
+            const rollRangeText = document.getElementById('rollRangeText');
+            const rollUnderVal = document.getElementById('rollUnderVal');
+            const rollOverVal = document.getElementById('rollOverVal');
+
+            const chance = appState.winChance;
+            chanceLabel.textContent = `${chance.toFixed(2)}%`;
+
+            if (chance > 0) {
+                const mult = (100 / chance).toFixed(2);
+                multiplierLabel.textContent = `x${mult}`;
+            } else {
+                multiplierLabel.textContent = `x0.00`;
+            }
+
+            if (appState.rollDirection === 'under') {
+                rollUnderVal.textContent = `0 - ${chance.toFixed(2)}`;
+                rollOverVal.textContent = `${(100 - chance).toFixed(2)} - 100`;
+                rollRangeText.textContent = `0.00 - ${chance.toFixed(2)}`;
+            } else {
+                rollUnderVal.textContent = `0 - ${(100 - chance).toFixed(2)}`;
+                rollOverVal.textContent = `${(100 - chance).toFixed(2)} - 100`;
+                rollRangeText.textContent = `${(100 - chance).toFixed(2)} - 100.00`;
+            }
+
+            if (!appState.selectedSourceItem) {
+                statusText.textContent = "Выберите ваш предмет";
+                disableUpgradeBtn("ВЫБЕРИТЕ ПРЕДМЕТ");
+            } else if (!appState.selectedTargetItem) {
+                statusText.textContent = "Выберите цель NFT";
+                disableUpgradeBtn("ВЫБЕРИТЕ ЦЕЛЬ");
+            } else if (appState.selectedSourceItem.instanceId && appState.selectedSourceItem.instanceId === appState.selectedTargetItem.instanceId) {
+                statusText.textContent = "Предметы совпадают";
+                disableUpgradeBtn("ВЫБЕРИТЕ ДРУГУЮ ЦЕЛЬ");
+            } else if (appState.isSpinning) {
+                statusText.textContent = "Крутим диск...";
+                disableUpgradeBtn("УЛУЧШАЕМ...");
+            } else {
+                statusText.textContent = "Готово к апгрейду!";
+                enableUpgradeBtn();
+            }
+        }
+
+        function disableUpgradeBtn(text) {
+            const btn = document.getElementById('upgradeBtn');
+            btn.disabled = true;
+            btn.textContent = text;
+            btn.className = "w-full py-4 rounded-xl font-extrabold text-base uppercase tracking-wider transition-all duration-300 shadow-lg bg-gray-800 text-gray-500 cursor-not-allowed border border-white/5";
+        }
+
+        function enableUpgradeBtn() {
+            const btn = document.getElementById('upgradeBtn');
+            btn.disabled = false;
+            btn.textContent = "УЛУЧШИТЬ ПРЕДМЕТ";
+            btn.className = "w-full py-4 rounded-xl font-extrabold text-base uppercase tracking-wider transition-all duration-300 shadow-lg bg-gradient-to-r from-cyan-500 via-blue-600 to-purple-600 hover:brightness-110 text-white cursor-pointer border border-cyan-400/30 glow-cyan active:scale-98";
+        }
+
+        function drawWheel(winChancePercent, rotationAngle = 0, isWinAnimation = false) {
+            const width = canvas.width;
+            const height = canvas.height;
+            const centerX = width / 2;
+            const centerY = height / 2;
+            const radius = width / 2 - 15;
+
+            ctx.clearRect(0, 0, width, height);
+
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+            ctx.fillStyle = '#111827';
+            ctx.fill();
+            ctx.lineWidth = 4;
+            ctx.strokeStyle = '#1f2937';
+            ctx.stroke();
+
+            if (winChancePercent <= 0) {
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, radius - 8, 0, Math.PI * 2);
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+                ctx.lineWidth = 14;
+                ctx.stroke();
+                return;
+            }
+
+            const winAngle = (winChancePercent / 100) * (Math.PI * 2);
+            let startAngle, endAngle;
+
+            if (appState.rollDirection === 'under') {
+                startAngle = -Math.PI / 2 + rotationAngle;
+                endAngle = startAngle + winAngle;
+            } else {
+                endAngle = -Math.PI / 2 + Math.PI * 2 + rotationAngle;
+                startAngle = endAngle - winAngle;
+            }
+
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius - 10, 0, Math.PI * 2);
+            ctx.lineWidth = 16;
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.06)';
+            ctx.stroke();
+
+            const gradient = ctx.createConicGradient(startAngle, centerX, centerY);
+            gradient.addColorStop(0, '#38bdf8');
+            gradient.addColorStop(0.5, '#818cf8');
+            gradient.addColorStop(1, '#c084fc');
+
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius - 10, startAngle, endAngle);
+            ctx.lineWidth = 18;
+            ctx.strokeStyle = gradient;
+            ctx.lineCap = 'round';
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius - 10, startAngle, endAngle);
+            ctx.lineWidth = 4;
+            ctx.strokeStyle = '#ffffff';
+            ctx.shadowColor = '#38bdf8';
+            ctx.shadowBlur = 12;
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+        }
+
+        function startUpgrade() {
+            if (appState.isSpinning || !appState.selectedSourceItem || !appState.selectedTargetItem) return;
+
+            appState.isSpinning = true;
+            updateUpgraderUI();
+
+            const chance = appState.winChance;
+            const rollResult = Math.random() * 100;
+            
+            let isWin = false;
+            if (appState.rollDirection === 'under') {
+                isWin = rollResult <= chance;
+            } else {
+                isWin = rollResult >= (100 - chance);
+            }
+
+            const targetDegree = (rollResult / 100) * 360;
+            const totalDegrees = 360 * 4 + targetDegree;
+            const duration = 4000;
+            const startTime = performance.now();
+            let lastSoundTick = 0;
+
+            function animateSpin(currentTime) {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                const easeOut = 1 - Math.pow(1 - progress, 3);
+                const currentDeg = totalDegrees * easeOut;
+                const currentRad = (currentDeg * Math.PI) / 180;
+
+                if (elapsed - lastSoundTick > 70 + (progress * 250)) {
+                    playSound('tick');
+                    lastSoundTick = elapsed;
+                }
+
+                drawWheel(chance, currentRad, false);
+
+                if (progress < 1) {
+                    requestAnimationFrame(animateSpin);
+                } else {
+                    appState.isSpinning = false;
+                    handleUpgradeResult(isWin, rollResult);
+                }
+            }
+
+            requestAnimationFrame(animateSpin);
+        }
+
+        function handleUpgradeResult(isWin, rollResult) {
+            const sourceItem = appState.selectedSourceItem;
+            const targetItem = appState.selectedTargetItem;
+
+            appState.inventory = appState.inventory.filter(i => i.instanceId !== sourceItem.instanceId);
+
+            if (isWin) {
+                const newNft = { ...targetItem, instanceId: 'inv_' + Date.now() };
+                appState.inventory.unshift(newNft);
+                saveState();
+
+                playSound('win');
+                showResultModal(true, targetItem, rollResult);
+            } else {
+                saveState();
+                playSound('fail');
+                showResultModal(false, sourceItem, rollResult);
+            }
+
+            appState.selectedSourceItem = null;
+            appState.selectedTargetItem = null;
+            resetSlotUI('source');
+            resetSlotUI('target');
+            calculateChance();
+            renderInventory();
+        }
+
+        function showResultModal(isWin, item, rollResult) {
+            const modal = document.getElementById('resultModal');
+            const icon = document.getElementById('resultIcon');
+            const title = document.getElementById('resultTitle');
+            const desc = document.getElementById('resultDesc');
+            const nftCard = document.getElementById('resultNftCard');
+            const glow = document.getElementById('resultGlow');
+
+            if (isWin) {
+                glow.className = "absolute -top-24 w-48 h-48 rounded-full blur-3xl opacity-60 bg-green-500";
+                icon.className = "w-20 h-20 rounded-2xl bg-green-500/20 text-green-400 border border-green-500/40 flex items-center justify-center text-4xl mb-4 z-10 shadow-xl glow-cyan";
+                icon.innerHTML = '<i class="fa-solid fa-trophy"></i>';
+                title.textContent = "УСПЕШНЫЙ АПГРЕЙД!";
+                title.className = "text-2xl font-black mb-1 z-10 text-green-400";
+                desc.textContent = `Выпало число: ${rollResult.toFixed(2)}. Предмет добавлен в инвентарь!`;
+
+                nftCard.innerHTML = `
+                    <div class="text-3xl p-2 rounded-lg bg-black/40">${item.icon}</div>
+                    <div class="text-left flex-1">
+                        <div class="text-sm font-bold text-white">${item.name}</div>
+                        <div class="text-xs text-gray-400 uppercase font-semibold">${item.rarity}</div>
+                    </div>
+                    <div class="text-sm font-extrabold text-cyan-400">${item.price.toLocaleString('ru-RU')} 💎</div>
+                `;
+            } else {
+                glow.className = "absolute -top-24 w-48 h-48 rounded-full blur-3xl opacity-60 bg-red-500";
+                icon.className = "w-20 h-20 rounded-2xl bg-red-500/20 text-red-400 border border-red-500/40 flex items-center justify-center text-4xl mb-4 z-10 shadow-xl";
+                icon.innerHTML = '<i class="fa-solid fa-skull-crossbones"></i>';
+                title.textContent = "НЕУДАЧА";
+                title.className = "text-2xl font-black mb-1 z-10 text-red-400";
+                desc.textContent = `Выпало число: ${rollResult.toFixed(2)}. Ваш предмет сгорел.`;
+
+                nftCard.innerHTML = `
+                    <div class="text-3xl p-2 rounded-lg bg-black/40 grayscale">${item.icon}</div>
+                    <div class="text-left flex-1">
+                        <div class="text-sm font-bold text-gray-400 line-through">${item.name}</div>
+                        <div class="text-xs text-red-400 font-semibold">СГОРЕЛ В УЛУЧШЕНИИ</div>
+                    </div>
+                `;
+            }
+
+            modal.classList.remove('hidden');
+        }
+
+        function closeResultModal() {
+            document.getElementById('resultModal').classList.add('hidden');
+        }
+
+        // ================= ITEM MODAL & SELECTORS =================
+
+        function openItemSelector(targetType) {
+            const modal = document.getElementById('itemModal');
+            const title = document.getElementById('modalTitle');
+            const subtitle = document.getElementById('modalSubtitle');
+            const list = document.getElementById('modalItemsList');
+
+            list.innerHTML = '';
+
+            if (targetType === 'source') {
+                title.textContent = "Выберите ваш предмет";
+                subtitle.textContent = "Предметы из вашего инвентаря";
+
+                if (appState.inventory.length === 0) {
+                    list.innerHTML = `
+                        <div class="col-span-2 py-10 flex flex-col items-center justify-center text-center">
+                            <i class="fa-solid fa-box-open text-4xl text-gray-600 mb-3"></i>
+                            <div class="text-sm font-bold text-gray-300">Инвентарь пуст</div>
+                            <p class="text-xs text-gray-500 max-w-xs mt-1 mb-4">Приобретите NFT Доширак или Pepe в Маркете за стартовый бонус 10,000 💎 ICES!</p>
+                            <button onclick="closeModal(); switchTab('market');" class="px-4 py-2 bg-cyan-600 text-white font-bold text-xs rounded-xl shadow">
+                                В Маркет NFT
+                            </button>
+                        </div>
+                    `;
+                } else {
+                    appState.inventory.forEach(item => {
+                        const card = createItemCardHTML(item, () => selectItemForSlot('source', item));
+                        list.appendChild(card);
+                    });
+                }
+            } else {
+                title.textContent = "Выберите NFT цель";
+                subtitle.textContent = "NFT Дошираки, Pepe и Telegram Collectibles";
+
+                appState.market.forEach(item => {
+                    const card = createItemCardHTML(item, () => selectItemForSlot('target', item));
+                    list.appendChild(card);
+                });
+            }
+
+            modal.classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('itemModal').classList.add('hidden');
+        }
+
+        function selectItemForSlot(slot, item) {
+            if (slot === 'source') {
+                appState.selectedSourceItem = item;
+                updateSlotUI('source', item);
+            } else {
+                appState.selectedTargetItem = item;
+                updateSlotUI('target', item);
+            }
+            closeModal();
+            calculateChance();
+        }
+
+        function updateSlotUI(slot, item) {
+            const container = document.getElementById(`${slot}ItemContainer`);
+            const priceEl = document.getElementById(`${slot}ItemPrice`);
+
+            container.innerHTML = `
+                <div class="text-3xl mb-1 transition-transform group-hover:scale-110">${item.icon}</div>
+                <span class="text-xs font-bold text-white text-center truncate max-w-full">${item.name}</span>
+                <span class="text-[10px] uppercase font-semibold text-gray-400">${item.rarity}</span>
+            `;
+
+            priceEl.textContent = `${item.price.toLocaleString('ru-RU')} 💎`;
+            priceEl.classList.remove('hidden');
+        }
+
+        function resetSlotUI(slot) {
+            const container = document.getElementById(`${slot}ItemContainer`);
+            const priceEl = document.getElementById(`${slot}ItemPrice`);
+
+            if (slot === 'source') {
+                container.innerHTML = `
+                    <div class="w-12 h-12 rounded-xl border border-dashed border-gray-600 flex items-center justify-center text-gray-500 mb-1">
+                        <i class="fa-solid fa-plus text-lg"></i>
+                    </div>
+                    <span class="text-xs text-gray-400 text-center">Из инвентаря</span>
+                `;
+            } else {
+                container.innerHTML = `
+                    <div class="w-12 h-12 rounded-xl border border-dashed border-gray-600 flex items-center justify-center text-gray-500 mb-1">
+                        <i class="fa-solid fa-bullseye text-lg"></i>
+                    </div>
+                    <span class="text-xs text-gray-400 text-center">Из каталога NFT</span>
+                `;
+            }
+
+            priceEl.classList.add('hidden');
+        }
+
+        function createItemCardHTML(item, onClickFn) {
+            const div = document.createElement('div');
+            div.className = `glass-card p-3 rounded-xl border flex flex-col items-center justify-between cursor-pointer transition-all hover:border-cyan-400/50 relative overflow-hidden`;
+            
+            let rarityColor = "#9ca3af";
+            if (item.rarity === 'rare') rarityColor = "#3b82f6";
+            if (item.rarity === 'epic') rarityColor = "#a855f7";
+            if (item.rarity === 'legendary') rarityColor = "#eab308";
+            if (item.rarity === 'mythic') rarityColor = "#ef4444";
+
+            div.style.borderColor = `${rarityColor}40`;
+
+            div.innerHTML = `
+                <div class="absolute top-0 right-0 w-12 h-12 opacity-15 rounded-full blur-lg" style="background:${rarityColor}"></div>
+                <div class="text-3xl my-2">${item.icon}</div>
+                <div class="w-full text-center">
+                    <div class="text-xs font-bold text-white truncate">${item.name}</div>
+                    <div class="text-[10px] uppercase font-bold tracking-wider" style="color:${rarityColor}">${item.rarity}</div>
+                </div>
+                <div class="mt-2 text-xs font-extrabold text-cyan-300 bg-cyan-950/60 px-2 py-0.5 rounded-md border border-cyan-500/20">
+                    ${item.price.toLocaleString('ru-RU')} 💎
+                </div>
+            `;
+
+            div.addEventListener('click', onClickFn);
+            return div;
+        }
+
+        // ================= INVENTORY & MARKET RENDERERS =================
+
+        function renderInventory() {
+            const grid = document.getElementById('inventoryGrid');
+            const countEl = document.getElementById('inventoryCount');
+
+            countEl.textContent = appState.inventory.length;
+            grid.innerHTML = '';
+
+            if (appState.inventory.length === 0) {
+                grid.innerHTML = `
+                    <div class="col-span-full py-16 flex flex-col items-center justify-center text-center">
+                        <div class="w-16 h-16 rounded-full bg-gray-800/60 flex items-center justify-center text-gray-500 text-2xl mb-3">
+                            <i class="fa-solid fa-box-open"></i>
+                        </div>
+                        <h3 class="text-base font-bold text-white">Инвентарь пуст</h3>
+                        <p class="text-xs text-gray-400 max-w-xs mt-1 mb-4">Купите Доширак или Pepe в маркете для первой игры!</p>
+                        <button onclick="switchTab('market')" class="px-5 py-2.5 bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-extrabold text-xs rounded-xl shadow-md">
+                            Перейти в Маркет NFT
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+
+            appState.inventory.forEach(item => {
+                const card = createItemCardHTML(item, () => {
+                    appState.selectedSourceItem = item;
+                    switchTab('upgrader');
+                    updateSlotUI('source', item);
+                    calculateChance();
+                });
+                grid.appendChild(card);
+            });
+        }
+
+        let currentMarketFilter = 'all';
+
+        function filterMarket(category) {
+            currentMarketFilter = category;
+            document.querySelectorAll('.market-filter-btn').forEach(btn => {
+                btn.className = "market-filter-btn bg-gray-800 text-gray-300 px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap";
+            });
+            event.target.className = "market-filter-btn active bg-cyan-500 text-black px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap shadow-md";
+            renderMarket();
+        }
+
+        function renderMarket() {
+            const grid = document.getElementById('marketGrid');
+            grid.innerHTML = '';
+
+            const itemsToDisplay = currentMarketFilter === 'all' 
+                ? appState.market 
+                : appState.market.filter(i => i.category === currentMarketFilter);
+
+            itemsToDisplay.forEach(item => {
+                const div = document.createElement('div');
+                let rarityColor = "#9ca3af";
+                if (item.rarity === 'rare') rarityColor = "#3b82f6";
+                if (item.rarity === 'epic') rarityColor = "#a855f7";
+                if (item.rarity === 'legendary') rarityColor = "#eab308";
+                if (item.rarity === 'mythic') rarityColor = "#ef4444";
+
+                div.className = `glass-card p-3 rounded-2xl border flex flex-col items-center justify-between relative overflow-hidden`;
+                div.style.borderColor = `${rarityColor}40`;
+
+                div.innerHTML = `
+                    <div class="text-3xl my-3">${item.icon}</div>
+                    <div class="w-full text-center mb-2">
+                        <div class="text-xs font-bold text-white truncate">${item.name}</div>
+                        <div class="text-[10px] uppercase font-extrabold tracking-wide" style="color:${rarityColor}">${item.rarity}</div>
+                    </div>
+                    <button onclick="buyMarketItem('${item.id}')" class="w-full py-2 bg-cyan-500/15 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/40 font-extrabold text-xs rounded-xl flex items-center justify-center gap-1 transition-all">
+                        <span>Купить</span>
+                        <span>${item.price.toLocaleString('ru-RU')} 💎</span>
+                    </button>
+                `;
+
+                grid.appendChild(div);
+            });
+        }
+
+        function buyMarketItem(itemId) {
+            const item = appState.market.find(i => i.id === itemId);
+            if (!item) return;
+
+            if (appState.currentUser.balance < item.price) {
+                showToast("Недостаточно 💎 ICES для покупки!");
+                return;
+            }
+
+            appState.currentUser.balance -= item.price;
+            const newInventoryItem = { ...item, instanceId: 'inv_' + Date.now() };
+            appState.inventory.unshift(newInventoryItem);
+
+            saveState();
+            renderUserInfo();
+            renderInventory();
+            playSound('win');
+            showToast(`Успешно куплено: ${item.name}!`);
+        }
+
+        // ================= ADMIN PANEL FUNCTIONS (@yung_roxy) =================
+
+        function adminGrantBalance() {
+            if (!appState.currentUser.isAdmin) return;
+            const amountInput = parseInt(document.getElementById('adminAmount').value);
+
+            if (!amountInput || amountInput <= 0) {
+                showToast("Введите сумму!");
+                return;
+            }
+
+            appState.currentUser.balance += amountInput;
+            saveState();
+            renderUserInfo();
+
+            showToast(`Начислено +${amountInput.toLocaleString('ru-RU')} 💎 ICES!`);
+            document.getElementById('adminAmount').value = '';
+        }
+
+        function populateAdminNFTDropdown() {
+            const select = document.getElementById('adminNftSelect');
+            if (!select) return;
+            select.innerHTML = '';
+
+            appState.market.forEach(item => {
+                const opt = document.createElement('option');
+                opt.value = item.id;
+                opt.textContent = `${item.name} (${item.price} ICES)`;
+                select.appendChild(opt);
+            });
+        }
+
+        function adminGrantNFT() {
+            if (!appState.currentUser.isAdmin) return;
+            const selectVal = document.getElementById('adminNftSelect').value;
+            const item = appState.market.find(i => i.id === selectVal);
+
+            if (!item) return;
+
+            const newItem = { ...item, instanceId: 'inv_' + Date.now() };
+            appState.inventory.unshift(newItem);
+            saveState();
+            renderInventory();
+
+            showToast(`NFT "${item.name}" выдан в инвентарь!`);
+        }
+
+        function adminCreateMarketNFT() {
+            if (!appState.currentUser.isAdmin) return;
+
+            const name = document.getElementById('adminNewNftName').value.trim();
+            const price = parseInt(document.getElementById('adminNewNftPrice').value);
+            const rarity = document.getElementById('adminNewNftRarity').value;
+            const category = document.getElementById('adminNewNftCategory').value;
+            const icon = document.getElementById('adminNewNftIcon').value.trim() || '🍜';
+
+            if (!name || !price) {
+                showToast("Заполните имя и цену!");
+                return;
+            }
+
+            const newNft = {
+                id: 'custom_nft_' + Date.now(),
+                name,
+                price,
+                rarity,
+                category,
+                icon,
+                color: rarity === 'mythic' ? '#ef4444' : rarity === 'legendary' ? '#eab308' : '#3b82f6'
+            };
+
+            appState.market.unshift(newNft);
+            saveState();
+            renderMarket();
+            populateAdminNFTDropdown();
+
+            showToast(`Добавлен новый NFT в Маркет: ${name}`);
+            document.getElementById('adminNewNftName').value = '';
+            document.getElementById('adminNewNftPrice').value = '';
+        }
+
+        function showToast(msg) {
+            const toast = document.createElement('div');
+            toast.className = "fixed top-16 left-1/2 -translate-x-1/2 z-50 bg-gray-900/95 text-cyan-300 border border-cyan-500/40 px-4 py-2 rounded-xl text-xs font-bold shadow-2xl backdrop-blur-md transition-all duration-300 opacity-0 transform -translate-y-2";
+            toast.textContent = msg;
+
+            document.body.appendChild(toast);
+
+            setTimeout(() => {
+                toast.classList.remove('opacity-0', '-translate-y-2');
+            }, 10);
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0', '-translate-y-2');
+                setTimeout(() => toast.remove(), 300);
+            }, 2500);
+        }
+
+        window.addEventListener('load', () => {
+            initApp();
+        });
+    </script>
+</body>
+</html>
