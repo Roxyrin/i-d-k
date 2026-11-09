@@ -1,879 +1,428 @@
+```html
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="ru" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TG Gifts Upgrader & Wallet</title>
+    <title>Telegram NFT Upgrader</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Font Awesome icons -->
+    <!-- Telegram WebApp SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Canvas Confetti -->
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <script>
         tailwind.config = {
+            darkMode: 'class',
             theme: {
                 extend: {
                     colors: {
-                        tgBg: '#0f172a',
-                        tgCard: '#1e293b',
-                        tgAccent: '#3b82f6',
-                        tgPurple: '#8b5cf6',
-                        tgPink: '#ec4899',
-                        tgIce: '#38bdf8',
+                        brand: {
+                            50: '#f0f7ff',
+                            400: '#38bdf8',
+                            500: '#0088cc',
+                            600: '#0284c7',
+                            900: '#0c4a6e',
+                        },
+                        nft: {
+                            common: '#9ca3af',
+                            rare: '#3b82f6',
+                            epic: '#a855f7',
+                            legendary: '#eab308',
+                            mythic: '#ef4444'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Outfit', 'sans-serif'],
                     }
                 }
             }
         }
     </script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-        
-        * {
-            font-family: 'Inter', sans-serif;
-            -webkit-tap-highlight-color: transparent;
-            user-select: none;
-        }
-
         body {
-            background-color: #0b0f19;
-            color: #f8fafc;
-            overflow-x: hidden;
+            font-family: 'Outfit', sans-serif;
+            background-color: #0b0e14;
+            color: #f3f4f6;
+            touch-action: manipulation;
+            user-select: none;
+            -webkit-user-select: none;
         }
 
         .glass-panel {
-            background: rgba(30, 41, 59, 0.7);
-            backdrop-filter: blur(12px);
+            background: rgba(18, 24, 38, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
             border: 1px solid rgba(255, 255, 255, 0.08);
         }
 
-        .glass-button {
-            background: rgba(59, 130, 246, 0.15);
-            backdrop-filter: blur(8px);
-            border: 1px solid rgba(59, 130, 246, 0.3);
+        .glass-card {
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0.01) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        /* Wheel Styles */
-        .wheel-container {
-            position: relative;
-            width: 290px;
-            height: 290px;
-            margin: 0 auto;
+        .glass-card:active {
+            transform: scale(0.97);
         }
 
-        #wheelCanvas {
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            box-shadow: 0 0 25px rgba(56, 189, 248, 0.25), 0 0 50px rgba(139, 92, 246, 0.15);
+        .glow-cyan {
+            box-shadow: 0 0 25px rgba(56, 189, 248, 0.3);
         }
 
-        .wheel-pointer {
-            position: absolute;
-            top: -12px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 0;
-            height: 0;
-            border-left: 14px solid transparent;
-            border-right: 14px solid transparent;
-            border-top: 24px solid #ef4444;
-            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5));
-            z-index: 10;
+        .glow-mythic {
+            box-shadow: 0 0 30px rgba(239, 68, 68, 0.45);
         }
 
-        /* Custom Scrollbar */
         ::-webkit-scrollbar {
-            width: 5px;
+            width: 4px;
+            height: 4px;
         }
         ::-webkit-scrollbar-track {
             background: rgba(15, 23, 42, 0.6);
         }
         ::-webkit-scrollbar-thumb {
-            background: rgba(59, 130, 246, 0.5);
-            border-radius: 4px;
+            background: rgba(56, 189, 248, 0.3);
+            border-radius: 999px;
         }
 
-        /* Shimmer effect */
-        .shimmer {
-            background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0) 100%);
-            background-size: 200% 100%;
-            animation: shimmer 2.5s infinite;
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
         }
-        @keyframes shimmer {
-            0% { background-position: -200% 0; }
-            100% { background-position: 200% 0; }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
         }
 
-        .glow-ice {
-            box-shadow: 0 0 15px rgba(56, 189, 248, 0.4);
+        #upgradeCanvas {
+            filter: drop-shadow(0 0 15px rgba(56, 189, 248, 0.25));
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-6px); }
+        }
+        .animate-float {
+            animation: float 4s infinite ease-in-out;
         }
     </style>
 </head>
-<body class="min-h-screen pb-20 flex flex-col justify-between max-w-md mx-auto relative shadow-2xl bg-slate-950">
+<body class="bg-[#0b0e14] text-gray-100 flex flex-col h-screen overflow-hidden antialiased select-none">
 
-    <!-- TOP BAR / USER PROFILE -->
-    <header class="sticky top-0 z-40 glass-panel px-4 py-3 flex items-center justify-between border-b border-slate-800">
+    <!-- Header Navigation -->
+    <header class="glass-panel sticky top-0 z-40 px-4 py-3 flex items-center justify-between border-b border-white/5">
         <div class="flex items-center space-x-3">
-            <div class="relative">
-                <img id="userAvatar" src="https://placehold.co/100x100/3b82f6/ffffff?text=TG" class="w-10 h-10 rounded-full border-2 border-sky-400 object-cover" alt="Avatar">
-                <span class="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 border-2 border-slate-900 rounded-full"></span>
+            <div id="userAvatarContainer" class="relative">
+                <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-cyan-500 via-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm shadow-md ring-2 ring-cyan-500/30">
+                    <span id="userAvatarText">TG</span>
+                </div>
+                <div class="absolute -bottom-1 -right-1 bg-green-500 w-3.5 h-3.5 rounded-full border-2 border-[#0b0e14]"></div>
             </div>
             <div>
-                <h3 id="userName" class="font-bold text-sm text-slate-100 flex items-center gap-1">
-                    @telegram_user
-                    <i class="fa-solid fa-circle-check text-sky-400 text-xs"></i>
-                </h3>
-                <p id="userRole" class="text-[10px] text-slate-400 font-semibold tracking-wider uppercase">Player</p>
+                <div class="flex items-center gap-1.5">
+                    <span id="usernameDisplay" class="font-bold text-sm text-white tracking-wide">@user</span>
+                    <span id="adminBadge" class="hidden text-[10px] font-extrabold bg-gradient-to-r from-amber-500 to-red-500 text-black px-1.5 py-0.5 rounded shadow">ADMIN</span>
+                </div>
+                <div class="text-[11px] text-gray-400 flex items-center gap-1">
+                    <i class="fa-solid fa-shield-halved text-cyan-400 text-[10px]"></i> TG Verified
+                </div>
             </div>
         </div>
 
-        <!-- Balance Pill -->
-        <div class="flex items-center gap-2 bg-slate-900/90 border border-sky-500/30 px-3 py-1.5 rounded-full shadow-inner">
-            <div class="w-5 h-5 rounded-full bg-gradient-to-tr from-sky-400 to-blue-600 flex items-center justify-center text-xs text-white glow-ice">
-                <i class="fa-solid fa-snowflake"></i>
+        <!-- Balance Display -->
+        <div class="flex items-center bg-cyan-950/40 border border-cyan-500/30 px-3 py-1.5 rounded-full shadow-inner">
+            <div class="w-5 h-5 rounded-full bg-cyan-500/20 flex items-center justify-center mr-2 text-cyan-400 text-xs">
+                💎
             </div>
-            <div class="text-right">
-                <span id="userBalance" class="font-extrabold text-sm text-sky-300">0</span>
-                <span class="text-[10px] text-sky-400/80 font-bold ml-0.5">ICE</span>
+            <div class="flex flex-col text-right">
+                <span class="text-[9px] uppercase tracking-wider text-cyan-300 font-semibold leading-tight">Баланс</span>
+                <span id="userBalance" class="font-extrabold text-sm text-cyan-300 leading-tight">10,000</span>
             </div>
+            <button onclick="switchTab('market')" class="ml-2 text-cyan-400 hover:text-white text-xs bg-cyan-500/20 p-1 rounded-full transition-colors">
+                <i class="fa-solid fa-plus"></i>
+            </button>
         </div>
     </header>
 
-    <!-- NOTIFICATION TOAST -->
-    <div id="toast" class="fixed top-16 left-1/2 -translate-x-1/2 z-50 transition-all duration-300 opacity-0 pointer-events-none transform -translate-y-4 w-11/12 max-w-xs">
-        <div class="glass-panel rounded-xl p-3 shadow-2xl flex items-center space-x-3 border-l-4 border-sky-400 bg-slate-900/95">
-            <div id="toastIcon" class="text-sky-400 text-xl"><i class="fa-solid fa-circle-info"></i></div>
-            <p id="toastMessage" class="text-xs text-slate-200 font-medium"></p>
-        </div>
-    </div>
+    <!-- Main Content Area -->
+    <main class="flex-1 overflow-y-auto relative no-scrollbar pb-24">
+        
+        <!-- ================= UPGRADER TAB ================= -->
+        <section id="tab-upgrader" class="p-4 flex flex-col items-center justify-between min-h-full">
+            
+            <!-- Upgrader Wheel Section -->
+            <div class="w-full max-w-sm flex flex-col items-center justify-center my-2 relative">
+                
+                <div class="relative w-64 h-64 md:w-72 md:h-72 flex items-center justify-center">
+                    <div id="wheelGlow" class="absolute inset-0 rounded-full bg-cyan-500/10 blur-xl transition-all duration-500"></div>
 
-    <!-- MAIN CONTENT AREA CONTAINER -->
-    <main class="p-4 flex-1 overflow-y-auto">
+                    <!-- Canvas Wheel -->
+                    <canvas id="upgradeCanvas" width="300" height="300" class="w-full h-full z-10"></canvas>
 
-        <!-- 1. WHEEL / UPGRADER TAB -->
-        <section id="tab-wheel" class="tab-content flex flex-col items-center justify-between space-y-4">
-            <div class="text-center space-y-1">
-                <h1 class="text-xl font-black bg-clip-text text-transparent bg-gradient-to-r from-sky-400 via-indigo-300 to-purple-400">
-                    TG Upgrader Wheel
-                </h1>
-                <p class="text-xs text-slate-400">Испытай удачу и выбей эксклюзивные Telegram NFT Подарки!</p>
-            </div>
+                    <!-- Top Pointer -->
+                    <div class="absolute top-0 z-20 -translate-y-1 text-cyan-400 drop-shadow-[0_0_8px_rgba(56,189,248,0.8)]">
+                        <i class="fa-solid fa-caret-down text-3xl"></i>
+                    </div>
 
-            <!-- Wheel UI -->
-            <div class="wheel-container my-2">
-                <div class="wheel-pointer"></div>
-                <canvas id="wheelCanvas" width="300" height="300"></canvas>
-            </div>
-
-            <!-- Spin Controls -->
-            <div class="w-full space-y-3">
-                <div class="flex justify-between items-center bg-slate-900/80 p-3 rounded-xl border border-slate-800 text-xs">
-                    <span class="text-slate-400">Стоимость кручения:</span>
-                    <span class="font-bold text-sky-400 flex items-center gap-1">
-                        <i class="fa-solid fa-snowflake"></i> 50 ICE
-                    </span>
+                    <!-- Center Stats -->
+                    <div class="absolute z-20 inset-0 flex flex-col items-center justify-center pointer-events-none text-center">
+                        <div id="chanceLabel" class="text-3xl font-black text-white tracking-tight drop-shadow-md">
+                            0.00%
+                        </div>
+                        <div id="multiplierLabel" class="text-xs font-semibold text-cyan-400 bg-cyan-950/80 px-2 py-0.5 rounded-full border border-cyan-500/30 mt-1">
+                            x0.00
+                        </div>
+                        <div id="upgradeStatusText" class="text-[11px] text-gray-400 mt-2 max-w-[140px] truncate">
+                            Выберите предметы
+                        </div>
+                    </div>
                 </div>
 
-                <button id="spinBtn" onclick="spinWheel()" class="w-full py-3.5 px-6 rounded-xl font-extrabold text-white text-base bg-gradient-to-r from-sky-500 via-blue-600 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 active:scale-95 transition-all shadow-lg shadow-sky-500/25 flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-arrows-spin text-lg"></i>
-                    <span>ВРАЩАТЬ КОЛЕСО</span>
+                <div class="mt-3 flex items-center justify-between w-full px-6 text-xs text-gray-400 font-mono">
+                    <span>ROLL: <span id="rollRangeText" class="text-white font-bold">0.00 - 0.00</span></span>
+                    <span>MAX: <span class="text-cyan-400 font-bold">95.00%</span></span>
+                </div>
+            </div>
+
+            <!-- Item Selector Slots -->
+            <div class="w-full max-w-md grid grid-cols-2 gap-3 my-3">
+                
+                <!-- SOURCE ITEM -->
+                <div onclick="openItemSelector('source')" class="glass-panel p-3 rounded-2xl flex flex-col items-center justify-between border border-white/10 hover:border-cyan-500/50 cursor-pointer relative min-h-[140px] group transition-all">
+                    <div class="w-full flex items-center justify-between text-[11px] text-gray-400 font-medium">
+                        <span>ВАШ ПРЕДМЕТ</span>
+                        <i class="fa-solid fa-repeat text-cyan-400 group-hover:rotate-180 transition-transform duration-300"></i>
+                    </div>
+
+                    <div id="sourceItemContainer" class="flex flex-col items-center justify-center my-2 w-full">
+                        <div class="w-12 h-12 rounded-xl border border-dashed border-gray-600 flex items-center justify-center text-gray-500 mb-1">
+                            <i class="fa-solid fa-plus text-lg"></i>
+                        </div>
+                        <span class="text-xs text-gray-400 text-center">Из инвентаря</span>
+                    </div>
+
+                    <div id="sourceItemPrice" class="text-xs font-extrabold text-cyan-400 hidden">
+                        0 💎
+                    </div>
+                </div>
+
+                <!-- TARGET ITEM -->
+                <div onclick="openItemSelector('target')" class="glass-panel p-3 rounded-2xl flex flex-col items-center justify-between border border-white/10 hover:border-purple-500/50 cursor-pointer relative min-h-[140px] group transition-all">
+                    <div class="w-full flex items-center justify-between text-[11px] text-gray-400 font-medium">
+                        <span>ЦЕЛЬ (NFT)</span>
+                        <i class="fa-solid fa-crosshairs text-purple-400 group-hover:scale-110 transition-transform"></i>
+                    </div>
+
+                    <div id="targetItemContainer" class="flex flex-col items-center justify-center my-2 w-full">
+                        <div class="w-12 h-12 rounded-xl border border-dashed border-gray-600 flex items-center justify-center text-gray-500 mb-1">
+                            <i class="fa-solid fa-bullseye text-lg"></i>
+                        </div>
+                        <span class="text-xs text-gray-400 text-center">Из каталога NFT</span>
+                    </div>
+
+                    <div id="targetItemPrice" class="text-xs font-extrabold text-purple-400 hidden">
+                        0 💎
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Upgrade Control Action -->
+            <div class="w-full max-w-md space-y-3">
+                <div class="flex items-center justify-between bg-black/40 p-1.5 rounded-xl border border-white/5">
+                    <button id="btnRollUnder" onclick="setRollDirection('under')" class="flex-1 py-1.5 text-xs font-bold rounded-lg transition-all bg-cyan-500/20 text-cyan-300 border border-cyan-500/40">
+                        МЕНЬШЕ (<span id="rollUnderVal">0-50</span>)
+                    </button>
+                    <button id="btnRollOver" onclick="setRollDirection('over')" class="flex-1 py-1.5 text-xs font-bold rounded-lg transition-all text-gray-400 hover:text-white">
+                        БОЛЬШЕ (<span id="rollOverVal">50-100</span>)
+                    </button>
+                </div>
+
+                <button id="upgradeBtn" onclick="startUpgrade()" disabled class="w-full py-4 rounded-xl font-extrabold text-base uppercase tracking-wider transition-all duration-300 shadow-lg bg-gray-800 text-gray-500 cursor-not-allowed border border-white/5">
+                    УЛУЧШИТЬ
                 </button>
             </div>
 
-            <!-- Last Drop Preview -->
-            <div class="w-full glass-panel rounded-xl p-3 border border-slate-800">
-                <div class="text-[11px] text-slate-400 uppercase font-bold tracking-wider mb-2 flex justify-between">
-                    <span>Выпадение из колеса</span>
-                    <span class="text-sky-400">Шансы RARE/LEGENDARY</span>
+        </section>
+
+        <!-- ================= INVENTORY TAB ================= -->
+        <section id="tab-inventory" class="p-4 hidden">
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <h2 class="text-lg font-bold text-white">Мой Инвентарь</h2>
+                    <p class="text-xs text-gray-400">NFT Дошираки, Пепе и Telegram предметы</p>
                 </div>
-                <div class="flex items-center space-x-3 bg-slate-900/60 p-2 rounded-lg">
-                    <div id="lastDropIcon" class="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center text-2xl">
-                        🎁
-                    </div>
-                    <div class="text-xs">
-                        <div id="lastDropName" class="font-bold text-slate-200">Готов к кручению?</div>
-                        <div id="lastDropRarity" class="text-[10px] text-slate-400">Нажми кнопкy выше</div>
-                    </div>
+                <div class="text-xs bg-gray-800/80 px-2.5 py-1 rounded-lg border border-white/10 text-gray-300">
+                    Предметов: <span id="inventoryCount" class="font-bold text-cyan-400">0</span>
                 </div>
+            </div>
+
+            <div id="inventoryGrid" class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                <!-- Items populated dynamically -->
             </div>
         </section>
 
-        <!-- 2. INVENTORY TAB -->
-        <section id="tab-inventory" class="tab-content hidden space-y-4">
-            <div class="flex items-center justify-between">
+        <!-- ================= MARKET TAB ================= -->
+        <section id="tab-market" class="p-4 hidden">
+            <div class="flex items-center justify-between mb-4">
                 <div>
-                    <h2 class="text-lg font-bold text-slate-100">Инвентарь TG Gifts</h2>
-                    <p class="text-xs text-slate-400">Все сохраненные NFT подарки</p>
+                    <h2 class="text-lg font-bold text-white">Маркет NFT & Мемов</h2>
+                    <p class="text-xs text-gray-400">Покупайте Дошираки, Pepe и Telegram NFT за 💎 ICES</p>
                 </div>
-                <span id="inventoryCount" class="text-xs font-bold px-2.5 py-1 rounded-full bg-sky-500/20 text-sky-400 border border-sky-500/30">0 шт</span>
+                <div class="text-xs bg-cyan-950/60 px-2.5 py-1 rounded-lg border border-cyan-500/30 text-cyan-300 font-bold">
+                    Официальный Маркет
+                </div>
             </div>
 
-            <!-- Grid of Gifts -->
-            <div id="inventoryGrid" class="grid grid-cols-2 gap-3 min-h-[250px]">
-                <!-- Dynamic Items Inserted Here -->
+            <!-- Market Filter Tabs -->
+            <div class="flex space-x-2 overflow-x-auto no-scrollbar mb-4 pb-1">
+                <button onclick="filterMarket('all')" class="market-filter-btn active bg-cyan-500 text-black px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap">Все</button>
+                <button onclick="filterMarket('doshirak')" class="market-filter-btn bg-gray-800 text-gray-300 px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap">🍜 Дошираки</button>
+                <button onclick="filterMarket('pepe')" class="market-filter-btn bg-gray-800 text-gray-300 px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap">🐸 Pepe & Мемы</button>
+                <button onclick="filterMarket('telegram')" class="market-filter-btn bg-gray-800 text-gray-300 px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap">📱 Telegram NFT</button>
+                <button onclick="filterMarket('gift')" class="market-filter-btn bg-gray-800 text-gray-300 px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap">🌟 Stars Gifts</button>
+            </div>
+
+            <!-- Market Grid -->
+            <div id="marketGrid" class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                <!-- Dynamically populated -->
             </div>
         </section>
 
-        <!-- 3. WITHDRAW TAB -->
-        <section id="tab-withdraw" class="tab-content hidden space-y-4">
-            <div class="text-center space-y-1">
-                <div class="w-12 h-12 bg-sky-500/10 text-sky-400 rounded-full flex items-center justify-center mx-auto text-xl border border-sky-500/20 glow-ice">
-                    <i class="fa-solid fa-wallet"></i>
-                </div>
-                <h2 class="text-lg font-bold text-slate-100">Вывод валюты ICE</h2>
-                <p class="text-xs text-slate-400">Перевод накопленных ICE на ваш TON Кошелек</p>
-            </div>
-
-            <!-- Warning Notice -->
-            <div class="p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl flex items-start space-x-2 text-xs text-amber-200">
-                <i class="fa-solid fa-triangle-exclamation text-amber-400 text-sm mt-0.5"></i>
-                <div>
-                    <strong class="font-bold">Важная информация:</strong> Выводить можно <span class="underline font-bold">только валюту ICE</span>. Предметы и Telegram NFT подарки выводить нельзя, они остаются в приложении!
-                </div>
-            </div>
-
-            <!-- Form -->
-            <div class="glass-panel p-4 rounded-xl space-y-4 border border-slate-800">
-                <div>
-                    <label class="block text-xs font-semibold text-slate-300 mb-1">Адрес TON Кошелька / Telegram Wallet</label>
-                    <input type="text" id="withdrawWallet" placeholder="EQD... или @wallet" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-xs text-slate-100 focus:outline-none focus:border-sky-500">
-                </div>
-
-                <div>
-                    <label class="block text-xs font-semibold text-slate-300 mb-1">Сумма для вывода (ICE)</label>
-                    <div class="relative">
-                        <input type="number" id="withdrawAmount" placeholder="Мин. 100 ICE" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-xs text-slate-100 focus:outline-none focus:border-sky-500">
-                        <button onclick="setMaxWithdraw()" class="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] font-bold bg-sky-500/20 text-sky-400 px-2 py-1 rounded">МАКС</button>
+        <!-- ================= ADMIN PANEL TAB ================= -->
+        <section id="tab-admin" class="p-4 hidden">
+            <div class="glass-panel p-4 rounded-2xl border border-red-500/30 mb-6 bg-red-950/20">
+                <div class="flex items-center justify-between mb-2">
+                    <div class="flex items-center space-x-2 text-red-400">
+                        <i class="fa-solid fa-user-shield text-xl"></i>
+                        <h2 class="text-lg font-bold text-white">Админ Панель</h2>
                     </div>
+                    <!-- Demo Mode Switcher for Testing -->
+                    <label class="flex items-center gap-2 cursor-pointer text-xs text-gray-300">
+                        <span>Демо Админ</span>
+                        <input type="checkbox" id="adminToggle" onchange="toggleAdminOverride(this.checked)" class="toggle-checkbox rounded bg-gray-800">
+                    </label>
                 </div>
-
-                <button onclick="processWithdraw()" class="w-full py-3 rounded-xl font-bold text-xs bg-gradient-to-r from-sky-500 to-blue-600 text-white hover:from-sky-400 hover:to-blue-500 transition-all shadow-md">
-                    Запросить вывод ICE
-                </button>
-            </div>
-        </section>
-
-        <!-- 4. ADMIN PANEL TAB -->
-        <section id="tab-admin" class="tab-content hidden space-y-4">
-            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-                <div class="flex items-center space-x-2">
-                    <span class="w-3 h-3 bg-red-500 rounded-full animate-ping"></span>
-                    <h2 class="text-base font-bold text-slate-100">Админ-Панель</h2>
-                </div>
-                <span class="text-[10px] bg-red-500/20 text-red-400 border border-red-500/30 px-2 py-0.5 rounded font-bold">SUPERADMIN</span>
+                <p class="text-xs text-gray-300">Доступ зарезервирован для <strong class="text-red-400">@yung_roxy</strong>. Полный контроль баланса и маркета.</p>
             </div>
 
-            <!-- Player Selection Section -->
-            <div class="space-y-2">
-                <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider">База Игроков (Выбор):</label>
-                <div id="adminPlayersList" class="space-y-2 max-h-48 overflow-y-auto pr-1">
-                    <!-- Players rendered dynamically -->
-                </div>
-            </div>
-
-            <!-- Selected Player Controls -->
-            <div id="adminControlsArea" class="glass-panel p-4 rounded-xl border border-slate-800 space-y-4">
-                <div class="flex justify-between items-center border-b border-slate-800 pb-2">
-                    <div>
-                        <span class="text-[10px] text-slate-400 block">Управление игроком:</span>
-                        <strong id="selectedPlayerName" class="text-sm text-sky-400 font-bold">Никто не выбран</strong>
-                    </div>
-                    <span id="selectedPlayerBalance" class="text-xs text-slate-300 bg-slate-900 px-2.5 py-1 rounded-full border border-slate-700">0 ICE</span>
-                </div>
-
-                <!-- Add/Remove Balance -->
-                <div class="space-y-2">
-                    <label class="block text-xs font-semibold text-slate-300">Начисление / Списание ICE</label>
-                    <div class="flex gap-2">
-                        <input type="number" id="adminBalanceInput" placeholder="Количество" class="w-1/2 bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-slate-100">
-                        <button onclick="adminModifyBalance(true)" class="w-1/4 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-lg p-2 transition">
-                            + Начислить
-                        </button>
-                        <button onclick="adminModifyBalance(false)" class="w-1/4 bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs rounded-lg p-2 transition">
-                            - Списать
+            <div class="space-y-4">
+                <!-- Add Balance Form -->
+                <div class="glass-panel p-4 rounded-xl border border-white/10">
+                    <h3 class="text-sm font-bold text-white mb-3 flex items-center gap-2">
+                        <i class="fa-solid fa-coins text-amber-400"></i> Пополнение баланса (💎 ICES)
+                    </h3>
+                    <div class="space-y-2">
+                        <input type="text" id="adminTargetUser" placeholder="Юзернейм (например, @yung_roxy)" class="w-full bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500">
+                        <input type="number" id="adminAmount" placeholder="Количество ICES (например, 50000)" class="w-full bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500">
+                        <button onclick="adminGrantBalance()" class="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-2.5 rounded-lg text-xs transition-colors shadow-md">
+                            Начислить баланс
                         </button>
                     </div>
                 </div>
 
-                <!-- Inspect Player Inventory & Add Gift (+) -->
-                <div class="space-y-2 pt-2 border-t border-slate-800">
-                    <div class="flex justify-between items-center">
-                        <span class="text-xs font-semibold text-slate-300">Инвентарь Игрока:</span>
-                        <button onclick="openAddGiftModal()" class="flex items-center gap-1 text-xs bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded-lg font-bold shadow-md transition">
-                            <i class="fa-solid fa-plus text-xs"></i> Выдать NFT Подарок
+                <!-- Grant NFT directly -->
+                <div class="glass-panel p-4 rounded-xl border border-white/10">
+                    <h3 class="text-sm font-bold text-white mb-3 flex items-center gap-2">
+                        <i class="fa-solid fa-gift text-purple-400"></i> Выдать NFT в инвентарь
+                    </h3>
+                    <div class="space-y-2">
+                        <select id="adminNftSelect" class="w-full bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-purple-500">
+                            <!-- Populated dynamically -->
+                        </select>
+                        <button onclick="adminGrantNFT()" class="w-full bg-purple-600 hover:bg-purple-500 text-white font-bold py-2.5 rounded-lg text-xs transition-colors shadow-md">
+                            Выдать NFT в инвентарь
                         </button>
                     </div>
+                </div>
 
-                    <div id="adminPlayerInventory" class="grid grid-cols-3 gap-2 max-h-32 overflow-y-auto p-1 bg-slate-900/60 rounded-lg">
-                        <div class="col-span-3 text-center text-slate-500 text-xs py-3">Выберите игрока для просмотра</div>
+                <!-- Add Custom NFT to Market -->
+                <div class="glass-panel p-4 rounded-xl border border-white/10">
+                    <h3 class="text-sm font-bold text-white mb-3 flex items-center gap-2">
+                        <i class="fa-solid fa-plus-circle text-green-400"></i> Добавить новый NFT в Маркет
+                    </h3>
+                    <div class="space-y-2">
+                        <input type="text" id="adminNewNftName" placeholder="Название (напр. NFT Доширак Сырный)" class="w-full bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-xs text-white placeholder-gray-500 focus:outline-none">
+                        <div class="grid grid-cols-2 gap-2">
+                            <input type="number" id="adminNewNftPrice" placeholder="Цена в ICES" class="bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-xs text-white placeholder-gray-500 focus:outline-none">
+                            <select id="adminNewNftRarity" class="bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-xs text-white focus:outline-none">
+                                <option value="common">Common</option>
+                                <option value="rare">Rare</option>
+                                <option value="epic">Epic</option>
+                                <option value="legendary">Legendary</option>
+                                <option value="mythic">Mythic</option>
+                            </select>
+                        </div>
+                        <select id="adminNewNftCategory" class="w-full bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-xs text-white focus:outline-none">
+                            <option value="doshirak">🍜 Доширак</option>
+                            <option value="pepe">🐸 Pepe & Мемы</option>
+                            <option value="telegram">📱 Telegram NFT</option>
+                            <option value="gift">🌟 Stars Gift</option>
+                        </select>
+                        <input type="text" id="adminNewNftIcon" placeholder="Эмодзи / Иконка (напр. 🍜, 🐸, 👑)" class="w-full bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-xs text-white placeholder-gray-500 focus:outline-none">
+                        <button onclick="adminCreateMarketNFT()" class="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-2.5 rounded-lg text-xs transition-colors shadow-md">
+                            Добавить в Маркет
+                        </button>
                     </div>
                 </div>
+
             </div>
         </section>
 
     </main>
 
-    <!-- BOTTOM NAVIGATION -->
-    <nav class="fixed bottom-0 left-0 right-0 max-w-md mx-auto glass-panel border-t border-slate-800 px-2 py-2 flex justify-around items-center z-40 bg-slate-950/90">
-        <button onclick="switchTab('wheel')" id="nav-wheel" class="nav-btn flex flex-col items-center w-1/4 text-sky-400 transition-colors">
-            <i class="fa-solid fa-dharmachakra text-lg mb-0.5"></i>
-            <span class="text-[10px] font-bold">Колесо</span>
+    <!-- Bottom Navigation Bar -->
+    <nav class="fixed bottom-0 left-0 right-0 z-40 glass-panel border-t border-white/10 px-4 py-2 flex justify-around items-center">
+        <button onclick="switchTab('upgrader')" id="nav-upgrader" class="nav-btn active flex flex-col items-center gap-1 text-cyan-400 transition-colors">
+            <i class="fa-solid fa-bolt-lightning text-lg"></i>
+            <span class="text-[10px] font-bold">Апгрейд</span>
         </button>
-
-        <button onclick="switchTab('inventory')" id="nav-inventory" class="nav-btn flex flex-col items-center w-1/4 text-slate-400 hover:text-slate-200 transition-colors">
-            <i class="fa-solid fa-box-open text-lg mb-0.5"></i>
+        <button onclick="switchTab('inventory')" id="nav-inventory" class="nav-btn flex flex-col items-center gap-1 text-gray-400 hover:text-white transition-colors">
+            <i class="fa-solid fa-box-archive text-lg"></i>
             <span class="text-[10px] font-bold">Инвентарь</span>
         </button>
-
-        <button onclick="switchTab('withdraw')" id="nav-withdraw" class="nav-btn flex flex-col items-center w-1/4 text-slate-400 hover:text-slate-200 transition-colors">
-            <i class="fa-solid fa-arrow-up-right-from-circle text-lg mb-0.5"></i>
-            <span class="text-[10px] font-bold">Вывод</span>
+        <button onclick="switchTab('market')" id="nav-market" class="nav-btn flex flex-col items-center gap-1 text-gray-400 hover:text-white transition-colors">
+            <i class="fa-solid fa-store text-lg"></i>
+            <span class="text-[10px] font-bold">Маркет</span>
         </button>
-
-        <button onclick="switchTab('admin')" id="nav-admin" class="nav-btn flex flex-col items-center w-1/4 text-slate-400 hover:text-slate-200 transition-colors">
-            <i class="fa-solid fa-user-shield text-lg mb-0.5"></i>
+        <button onclick="switchTab('admin')" id="nav-admin" class="nav-btn flex flex-col items-center gap-1 text-red-400 hover:text-red-300 transition-colors">
+            <i class="fa-solid fa-user-gear text-lg"></i>
             <span class="text-[10px] font-bold">Админка</span>
         </button>
     </nav>
 
-    <!-- MODAL: ADD NFT GIFT (ADMIN) -->
-    <div id="addGiftModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 hidden">
-        <div class="glass-panel w-full max-w-xs rounded-2xl p-4 space-y-4 border border-slate-700 bg-slate-900 shadow-2xl">
-            <div class="flex justify-between items-center border-b border-slate-800 pb-2">
-                <h3 class="text-sm font-bold text-slate-100 flex items-center gap-1.5">
-                    <i class="fa-solid fa-gift text-indigo-400"></i> Выдача NFT Подарка
-                </h3>
-                <button onclick="closeAddGiftModal()" class="text-slate-400 hover:text-white">
+    <!-- ITEM SELECTOR MODAL -->
+    <div id="itemModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden flex flex-col justify-end sm:justify-center items-center p-0 sm:p-4 transition-opacity duration-300">
+        <div class="glass-panel w-full sm:max-w-md h-[80vh] sm:h-[600px] rounded-t-3xl sm:rounded-2xl flex flex-col overflow-hidden border border-white/10">
+            <div class="px-5 py-4 border-b border-white/10 flex items-center justify-between">
+                <div>
+                    <h3 id="modalTitle" class="font-bold text-white text-base">Выберите предмет</h3>
+                    <p id="modalSubtitle" class="text-xs text-gray-400">Выберите элемент для улучшений</p>
+                </div>
+                <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-gray-400 hover:text-white">
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
 
-            <!-- Quick Presets -->
-            <div>
-                <label class="block text-[11px] font-semibold text-slate-400 mb-1">Быстрый Пресет Подарка Telegram:</label>
-                <div class="grid grid-cols-4 gap-1.5">
-                    <button onclick="applyGiftPreset('Spiced Wine', '🍷', 'Common')" class="p-1.5 bg-slate-800 hover:bg-slate-700 rounded text-center text-xs border border-slate-700">
-                        🍷 Wine
-                    </button>
-                    <button onclick="applyGiftPreset('Red Rose', '🌹', 'Common')" class="p-1.5 bg-slate-800 hover:bg-slate-700 rounded text-center text-xs border border-slate-700">
-                        🌹 Rose
-                    </button>
-                    <button onclick="applyGiftPreset('Blue Star', '⭐', 'Rare')" class="p-1.5 bg-slate-800 hover:bg-slate-700 rounded text-center text-xs border border-slate-700">
-                        ⭐ Star
-                    </button>
-                    <button onclick="applyGiftPreset('Diamond Ring', '💍', 'Legendary')" class="p-1.5 bg-slate-800 hover:bg-slate-700 rounded text-center text-xs border border-slate-700">
-                        💍 Ring
-                    </button>
-                </div>
-            </div>
-
-            <!-- Custom Form -->
-            <div class="space-y-3">
-                <div>
-                    <label class="block text-[11px] font-semibold text-slate-300 mb-1">Название Подарка</label>
-                    <input type="text" id="giftNameInput" placeholder="Например: Spiced Wine" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-slate-100 focus:outline-none focus:border-indigo-500">
-                </div>
-
-                <div>
-                    <label class="block text-[11px] font-semibold text-slate-300 mb-1">Иконка / Emoji / SVG Ссылка</label>
-                    <input type="text" id="giftIconInput" placeholder="Emoji (🎁) или URL карточки" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-slate-100 focus:outline-none focus:border-indigo-500">
-                </div>
-
-                <div>
-                    <label class="block text-[11px] font-semibold text-slate-300 mb-1">Редкость (Rarity)</label>
-                    <select id="giftRarityInput" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-slate-100 focus:outline-none focus:border-indigo-500">
-                        <option value="Common">Common (Обычный)</option>
-                        <option value="Rare">Rare (Редкий)</option>
-                        <option value="Legendary">Legendary (Легендарный)</option>
-                    </select>
-                </div>
-            </div>
-
-            <!-- Buttons -->
-            <div class="flex gap-2 pt-2">
-                <button onclick="closeAddGiftModal()" class="w-1/2 py-2 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700">
-                    Отмена
-                </button>
-                <button onclick="adminConfirmAddGift()" class="w-1/2 py-2 rounded-lg text-xs font-bold bg-indigo-600 text-white hover:bg-indigo-500 shadow-md">
-                    Зачислить
-                </button>
+            <div id="modalItemsList" class="flex-1 overflow-y-auto p-4 grid grid-cols-2 gap-3 no-scrollbar">
+                <!-- Dynamically populated -->
             </div>
         </div>
     </div>
 
-    <!-- JAVASCRIPT LOGIC -->
-    <script>
-        // --- 1. DATA & STATE MANAGEMENT ---
-        const WHEEL_ITEMS = [
-            { name: 'Spiced Wine', icon: '🍷', rarity: 'Common', color: '#3b82f6' },
-            { name: 'Red Rose', icon: '🌹', rarity: 'Common', color: '#ef4444' },
-            { name: 'Blue Star', icon: '⭐', rarity: 'Rare', color: '#06b6d4' },
-            { name: 'Heart', icon: '💖', rarity: 'Common', color: '#ec4899' },
-            { name: 'Diamond Ring', icon: '💍', rarity: 'Legendary', color: '#8b5cf6' },
-            { name: 'Golden Crown', icon: '👑', rarity: 'Legendary', color: '#f59e0b' },
-            { name: 'Sweet Cookie', icon: '🍪', rarity: 'Common', color: '#10b981' },
-            { name: 'Crypto Rocket', icon: '🚀', rarity: 'Rare', color: '#6366f1' }
-        ];
+    <!-- RESULT NOTIFICATION POPUP -->
+    <div id="resultModal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-lg hidden flex flex-col items-center justify-center p-6 text-center">
+        <div class="w-full max-w-xs glass-panel p-6 rounded-3xl border border-white/10 flex flex-col items-center relative overflow-hidden animate-float">
+            <div id="resultGlow" class="absolute -top-24 w-48 h-48 rounded-full blur-3xl opacity-60"></div>
 
-        // Default Mock Players Database
-        const DEFAULT_PLAYERS = [
-            {
-                id: 'usr_me',
-                name: '@durov',
-                role: 'ADMIN',
-                avatar: 'https://placehold.co/100x100/8b5cf6/ffffff?text=Pavel',
-                balance: 1500,
-                inventory: [
-                    { id: 1, name: 'Golden Crown', icon: '👑', rarity: 'Legendary', date: '2026-03-01' },
-                    { id: 2, name: 'Diamond Ring', icon: '💍', rarity: 'Legendary', date: '2026-03-02' }
-                ]
-            },
-            {
-                id: 'usr_2',
-                name: '@crypto_king',
-                role: 'Player',
-                avatar: 'https://placehold.co/100x100/10b981/ffffff?text=CK',
-                balance: 320,
-                inventory: [
-                    { id: 3, name: 'Blue Star', icon: '⭐', rarity: 'Rare', date: '2026-03-04' }
-                ]
-            },
-            {
-                id: 'usr_3',
-                name: '@ton_master',
-                role: 'Player',
-                avatar: 'https://placehold.co/100x100/06b9d4/ffffff?text=TM',
-                balance: 50,
-                inventory: [
-                    { id: 4, name: 'Spiced Wine', icon: '🍷', rarity: 'Common', date: '2026-03-05' }
-                ]
-            }
-        ];
+            <div id="resultIcon" class="w-20 h-20 rounded-2xl flex items-center justify-center text-4xl mb-4 z-10 shadow-xl"></div>
 
-        let playersDB = [];
-        let currentUserId = 'usr_me'; // Logged-in user
-        let selectedAdminUserId = 'usr_me'; // Admin targeting player
-        let isSpinning = false;
+            <h3 id="resultTitle" class="text-2xl font-black mb-1 z-10">УСПЕХ!</h3>
+            <p id="resultDesc" class="text-xs text-gray-300 mb-4 z-10">Вы успешно улучшили ваш предмет!</p>
 
-        // --- 2. INIT APP & LOCALSTORAGE ---
-        window.onload = function() {
-            loadDatabase();
-            updateUI();
-            drawWheel();
-        };
+            <div id="resultNftCard" class="w-full glass-card p-3 rounded-xl mb-5 flex items-center gap-3 z-10 border border-white/10"></div>
 
-        function loadDatabase() {
-            const saved = localStorage.getItem('tg_app_players_db');
-            if (saved) {
-                try {
-                    playersDB = JSON.parse(saved);
-                } catch(e) {
-                    playersDB = DEFAULT_PLAYERS;
-                }
-            } else {
-                playersDB = DEFAULT_PLAYERS;
-                saveDatabase();
-            }
-        }
-
-        function saveDatabase() {
-            localStorage.setItem('tg_app_players_db', JSON.stringify(playersDB));
-        }
-
-        function getCurrentUser() {
-            return playersDB.find(p => p.id === currentUserId) || playersDB[0];
-        }
-
-        function getSelectedAdminUser() {
-            return playersDB.find(p => p.id === selectedAdminUserId) || getCurrentUser();
-        }
-
-        // --- 3. UI RENDER FUNCTIONS ---
-        function updateUI() {
-            const user = getCurrentUser();
-
-            // Header update
-            document.getElementById('userName').innerHTML = `${user.name} <i class="fa-solid fa-circle-check text-sky-400 text-xs"></i>`;
-            document.getElementById('userRole').innerText = user.role || 'Player';
-            document.getElementById('userAvatar').src = user.avatar;
-            document.getElementById('userBalance').innerText = user.balance.toLocaleString();
-
-            // Render Tab Specifics
-            renderInventory();
-            renderAdminPanel();
-        }
-
-        function switchTab(tabName) {
-            // Hide all tabs
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-            
-            // Reset nav button colors
-            document.querySelectorAll('.nav-btn').forEach(btn => {
-                btn.classList.remove('text-sky-400');
-                btn.classList.add('text-slate-400');
-            });
-
-            // Show selected tab & highlight nav
-            document.getElementById(`tab-${tabName}`).classList.remove('hidden');
-            const activeNav = document.getElementById(`nav-${tabName}`);
-            activeNav.classList.remove('text-slate-400');
-            activeNav.classList.add('text-sky-400');
-
-            if (tabName === 'inventory') renderInventory();
-            if (tabName === 'admin') renderAdminPanel();
-        }
-
-        function showToast(message, icon = 'fa-circle-info', colorClass = 'text-sky-400') {
-            const toast = document.getElementById('toast');
-            document.getElementById('toastMessage').innerText = message;
-            document.getElementById('toastIcon').className = `${colorClass} text-xl`;
-            document.getElementById('toastIcon').innerHTML = `<i class="fa-solid ${icon}"></i>`;
-
-            toast.classList.remove('opacity-0', '-translate-y-4', 'pointer-events-none');
-            toast.classList.add('opacity-100', 'translate-y-0');
-
-            setTimeout(() => {
-                toast.classList.add('opacity-0', '-translate-y-4', 'pointer-events-none');
-                toast.classList.remove('opacity-100', 'translate-y-0');
-            }, 3000);
-        }
-
-        // --- 4. WHEEL CANVAS & LOGIC ---
-        let currentAngle = 0;
-
-        function drawWheel() {
-            const canvas = document.getElementById('wheelCanvas');
-            if (!canvas.getContext) return;
-            const ctx = canvas.getContext('2d');
-            const numSlices = WHEEL_ITEMS.length;
-            const sliceAngle = (2 * Math.PI) / numSlices;
-
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            for (let i = 0; i < numSlices; i++) {
-                const angle = currentAngle + i * sliceAngle;
-                
-                // Draw slice background
-                ctx.beginPath();
-                ctx.moveTo(150, 150);
-                ctx.arc(150, 150, 145, angle, angle + sliceAngle);
-                ctx.closePath();
-
-                // Alternating gradients
-                const item = WHEEL_ITEMS[i];
-                const gradient = ctx.createRadialGradient(150, 150, 20, 150, 150, 145);
-                gradient.addColorStop(0, '#1e293b');
-                gradient.addColorStop(1, item.color);
-                ctx.fillStyle = gradient;
-                ctx.fill();
-                ctx.strokeStyle = '#0f172a';
-                ctx.lineWidth = 3;
-                ctx.stroke();
-
-                // Draw Text / Emoji Icon
-                ctx.save();
-                ctx.translate(150, 150);
-                ctx.rotate(angle + sliceAngle / 2);
-                ctx.textAlign = 'right';
-                ctx.fillStyle = '#ffffff';
-                ctx.font = '22px Inter, sans-serif';
-                ctx.fillText(item.icon, 125, 8);
-                ctx.font = 'bold 10px Inter, sans-serif';
-                ctx.fillText(item.name, 95, 5);
-                ctx.restore();
-            }
-
-            // Center Pin Circle
-            ctx.beginPath();
-            ctx.arc(150, 150, 28, 0, 2 * Math.PI);
-            ctx.fillStyle = '#0f172a';
-            ctx.fill();
-            ctx.strokeStyle = '#38bdf8';
-            ctx.lineWidth = 3;
-            ctx.stroke();
-
-            // Center Icon
-            ctx.fillStyle = '#38bdf8';
-            ctx.font = '14px FontAwesome';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText('⚡', 150, 150);
-        }
-
-        function spinWheel() {
-            if (isSpinning) return;
-            const user = getCurrentUser();
-
-            if (user.balance < 50) {
-                showToast('Недостаточно ICE баланса! Нужно 50 ICE.', 'fa-triangle-exclamation', 'text-amber-400');
-                return;
-            }
-
-            // Deduct cost
-            user.balance -= 50;
-            saveDatabase();
-            updateUI();
-
-            isSpinning = true;
-            document.getElementById('spinBtn').disabled = true;
-            document.getElementById('spinBtn').classList.add('opacity-50');
-
-            const randomIndex = Math.floor(Math.random() * WHEEL_ITEMS.length);
-            const sliceAngle = (2 * Math.PI) / WHEEL_ITEMS.length;
-            
-            // Calculate target angle to stop at top pointer (-90 deg offset)
-            const extraRounds = 5 + Math.floor(Math.random() * 3);
-            const targetSliceCenter = randomIndex * sliceAngle + sliceAngle / 2;
-            const finalAngle = extraRounds * 2 * Math.PI + (1.5 * Math.PI - targetSliceCenter);
-
-            const duration = 4000;
-            const startAngle = currentAngle % (2 * Math.PI);
-            const angleChange = finalAngle - startAngle;
-            let startTime = null;
-
-            function animateSpin(timestamp) {
-                if (!startTime) startTime = timestamp;
-                const progress = Math.min((timestamp - startTime) / duration, 1);
-                
-                // Ease-out cubic animation formula
-                const easeOut = 1 - Math.pow(1 - progress, 3);
-                currentAngle = startAngle + angleChange * easeOut;
-                
-                drawWheel();
-
-                if (progress < 1) {
-                    requestAnimationFrame(animateSpin);
-                } else {
-                    isSpinning = false;
-                    document.getElementById('spinBtn').disabled = false;
-                    document.getElementById('spinBtn').classList.remove('opacity-50');
-
-                    // Win logic
-                    const wonItem = WHEEL_ITEMS[randomIndex];
-                    user.inventory.push({
-                        id: Date.now(),
-                        name: wonItem.name,
-                        icon: wonItem.icon,
-                        rarity: wonItem.rarity,
-                        date: new Date().toISOString().split('T')[0]
-                    });
-                    saveDatabase();
-                    updateUI();
-
-                    // Update Wheel Last Drop Info
-                    document.getElementById('lastDropIcon').innerText = wonItem.icon;
-                    document.getElementById('lastDropName').innerText = wonItem.name;
-                    document.getElementById('lastDropRarity').innerText = `Редкость: ${wonItem.rarity}`;
-
-                    // Confetti Effect
-                    confetti({
-                        particleCount: 80,
-                        spread: 60,
-                        origin: { y: 0.6 }
-                    });
-
-                    showToast(`Вы выиграли ${wonItem.name} ${wonItem.icon}!`, 'fa-gift', 'text-emerald-400');
-                }
-            }
-
-            requestAnimationFrame(animateSpin);
-        }
-
-        // --- 5. INVENTORY LOGIC ---
-        function renderInventory() {
-            const user = getCurrentUser();
-            const grid = document.getElementById('inventoryGrid');
-            document.getElementById('inventoryCount').innerText = `${user.inventory.length} шт`;
-
-            if (user.inventory.length === 0) {
-                grid.innerHTML = `
-                    <div class="col-span-2 text-center py-10 text-slate-500 space-y-2">
-                        <i class="fa-solid fa-box-open text-3xl opacity-40"></i>
-                        <p class="text-xs">Ваш инвентарь пуст. Вращайте колесо!</p>
-                    </div>
-                `;
-                return;
-            }
-
-            grid.innerHTML = user.inventory.map(item => {
-                let badgeColor = 'bg-slate-700 text-slate-300';
-                if (item.rarity === 'Rare') badgeColor = 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30';
-                if (item.rarity === 'Legendary') badgeColor = 'bg-amber-500/20 text-amber-300 border border-amber-500/30 glow-ice';
-
-                const isUrl = item.icon.startsWith('http');
-                const renderIcon = isUrl 
-                    ? `<img src="${item.icon}" class="w-12 h-12 object-contain" alt="Gift">`
-                    : `<span class="text-4xl">${item.icon}</span>`;
-
-                return `
-                    <div class="glass-panel p-3 rounded-xl border border-slate-800 flex flex-col items-center justify-between relative group hover:border-sky-500/40 transition">
-                        <span class="absolute top-2 right-2 text-[9px] font-bold px-2 py-0.5 rounded-full ${badgeColor}">
-                            ${item.rarity}
-                        </span>
-                        <div class="my-3">
-                            ${renderIcon}
-                        </div>
-                        <div class="text-center w-full">
-                            <h4 class="font-bold text-xs text-slate-200 truncate">${item.name}</h4>
-                            <p class="text-[9px] text-slate-500 mt-0.5">${item.date || 'NFT Telegram'}</p>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        // --- 6. WITHDRAW LOGIC ---
-        function setMaxWithdraw() {
-            const user = getCurrentUser();
-            document.getElementById('withdrawAmount').value = user.balance;
-        }
-
-        function processWithdraw() {
-            const user = getCurrentUser();
-            const wallet = document.getElementById('withdrawWallet').value.trim();
-            const amount = parseFloat(document.getElementById('withdrawAmount').value);
-
-            if (!wallet) {
-                showToast('Укажите адрес TON Кошелька!', 'fa-exclamation', 'text-rose-400');
-                return;
-            }
-
-            if (isNaN(amount) || amount <= 0) {
-                showToast('Введите корректную сумму!', 'fa-exclamation', 'text-rose-400');
-                return;
-            }
-
-            if (amount > user.balance) {
-                showToast('Недостаточно ICE на балансе!', 'fa-triangle-exclamation', 'text-amber-400');
-                return;
-            }
-
-            user.balance -= amount;
-            saveDatabase();
-            updateUI();
-
-            document.getElementById('withdrawAmount').value = '';
-            showToast(`Заявка на вывод ${amount} ICE отправлена!`, 'fa-circle-check', 'text-emerald-400');
-        }
-
-        // --- 7. ADMIN PANEL LOGIC ---
-        function renderAdminPanel() {
-            const playersContainer = document.getElementById('adminPlayersList');
-            
-            playersContainer.innerHTML = playersDB.map(player => {
-                const isSelected = player.id === selectedAdminUserId;
-                return `
-                    <div onclick="selectAdminPlayer('${player.id}')" class="p-2.5 rounded-xl border flex items-center justify-between cursor-pointer transition ${isSelected ? 'bg-indigo-950/60 border-indigo-500 shadow-md' : 'bg-slate-900/60 border-slate-800 hover:border-slate-700'}">
-                        <div class="flex items-center space-x-2.5">
-                            <img src="${player.avatar}" class="w-7 h-7 rounded-full object-cover">
-                            <div>
-                                <div class="text-xs font-bold text-slate-200 flex items-center gap-1">
-                                    ${player.name}
-                                    ${player.role === 'ADMIN' ? '<span class="text-[8px] bg-red-500/20 text-red-400 px-1 rounded">ADMIN</span>' : ''}
-                                </div>
-                                <div class="text-[10px] text-slate-400">${player.inventory.length} подарков</div>
-                            </div>
-                        </div>
-                        <div class="text-right">
-                            <div class="text-xs font-bold text-sky-400">${player.balance} ICE</div>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-
-            // Selected Player Details
-            const targetPlayer = getSelectedAdminUser();
-            document.getElementById('selectedPlayerName').innerText = targetPlayer.name;
-            document.getElementById('selectedPlayerBalance').innerText = `${targetPlayer.balance} ICE`;
-
-            // Render Target Player Inventory
-            const invContainer = document.getElementById('adminPlayerInventory');
-            if (targetPlayer.inventory.length === 0) {
-                invContainer.innerHTML = `<div class="col-span-3 text-center text-slate-500 text-xs py-3">Инвентарь пуст</div>`;
-            } else {
-                invContainer.innerHTML = targetPlayer.inventory.map(item => `
-                    <div class="bg-slate-950 p-1.5 rounded text-center border border-slate-800">
-                        <div class="text-lg">${item.icon.startsWith('http') ? '🖼️' : item.icon}</div>
-                        <div class="text-[9px] font-bold text-slate-300 truncate">${item.name}</div>
-                    </div>
-                `).join('');
-            }
-        }
-
-        function selectAdminPlayer(id) {
-            selectedAdminUserId = id;
-            renderAdminPanel();
-        }
-
-        function adminModifyBalance(isAdd) {
-            const targetPlayer = getSelectedAdminUser();
-            const val = parseFloat(document.getElementById('adminBalanceInput').value);
-
-            if (isNaN(val) || val <= 0) {
-                showToast('Введите сумму!', 'fa-exclamation', 'text-amber-400');
-                return;
-            }
-
-            if (isAdd) {
-                targetPlayer.balance += val;
-                showToast(`Начислено ${val} ICE игроку ${targetPlayer.name}`, 'fa-plus', 'text-emerald-400');
-            } else {
-                targetPlayer.balance = Math.max(0, targetPlayer.balance - val);
-                showToast(`Списано ${val} ICE у игрока ${targetPlayer.name}`, 'fa-minus', 'text-rose-400');
-            }
-
-            document.getElementById('adminBalanceInput').value = '';
-            saveDatabase();
-            updateUI();
-        }
-
-        // --- 8. ADMIN MODAL LOGIC (ADD GIFT) ---
-        function openAddGiftModal() {
-            const targetPlayer = getSelectedAdminUser();
-            document.getElementById('addGiftModal').classList.remove('hidden');
-        }
-
-        function closeAddGiftModal() {
-            document.getElementById('addGiftModal').classList.add('hidden');
-        }
-
-        function applyGiftPreset(name, icon, rarity) {
-            document.getElementById('giftNameInput').value = name;
-            document.getElementById('giftIconInput').value = icon;
-            document.getElementById('giftRarityInput').value = rarity;
-        }
-
-        function adminConfirmAddGift() {
-            const targetPlayer = getSelectedAdminUser();
-            const name = document.getElementById('giftNameInput').value.trim();
-            const icon = document.getElementById('giftIconInput').value.trim();
-            const rarity = document.getElementById('giftRarityInput').value;
-
-            if (!name || !icon) {
-                showToast('Заполните название и иконку подарка!', 'fa-exclamation', 'text-amber-400');
-                return;
-            }
-
-            // Push to targeted user inventory
-            targetPlayer.inventory.push({
-                id: Date.now(),
-                name: name,
-                icon: icon,
-                rarity: rarity,
-                date: new Date().toISOString().split('T')[0]
-            });
-
-            saveDatabase();
-            updateUI();
-            closeAddGiftModal();
-
-            // Clear Inputs
-            document.getElementById('giftNameInput').value = '';
-            document.getElementById('giftIconInput').value = '';
-
-            showToast(`NFT Подарок "${name}" зачислен игроку ${targetPlayer.name}!`, 'fa-gift', 'text-emerald-400');
-        }
-    </script>
-</body>
-</html>
+            <button onclick="
+```
