@@ -3,1110 +3,877 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TON Crypto Clicker & NFT Upgrader</title>
-    <!-- Tailwind CSS CDN -->
+    <title>TG Gifts Upgrader & Wallet</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome Icons -->
+    <!-- Font Awesome icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts Inter -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     colors: {
-                        ton: '#0098EA',
-                        tonDark: '#0078BD',
-                        darkBg: '#0b0f19',
-                        cardBg: '#131b2e',
-                        cardHover: '#1e293b',
-                        accentPurple: '#8b5cf6',
-                        accentGold: '#f59e0b',
-                    },
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
+                        tgBg: '#0f172a',
+                        tgCard: '#1e293b',
+                        tgAccent: '#3b82f6',
+                        tgPurple: '#8b5cf6',
+                        tgPink: '#ec4899',
+                        tgIce: '#38bdf8',
                     }
                 }
             }
         }
     </script>
     <style>
-        body {
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+        
+        * {
             font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+
+        body {
             background-color: #0b0f19;
             color: #f8fafc;
-            user-select: none;
-            -webkit-user-select: none;
             overflow-x: hidden;
         }
-        /* Custom scrollbar */
+
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .glass-button {
+            background: rgba(59, 130, 246, 0.15);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+
+        /* Wheel Styles */
+        .wheel-container {
+            position: relative;
+            width: 290px;
+            height: 290px;
+            margin: 0 auto;
+        }
+
+        #wheelCanvas {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            box-shadow: 0 0 25px rgba(56, 189, 248, 0.25), 0 0 50px rgba(139, 92, 246, 0.15);
+        }
+
+        .wheel-pointer {
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 14px solid transparent;
+            border-right: 14px solid transparent;
+            border-top: 24px solid #ef4444;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5));
+            z-index: 10;
+        }
+
+        /* Custom Scrollbar */
         ::-webkit-scrollbar {
-            width: 4px;
-            height: 4px;
+            width: 5px;
         }
         ::-webkit-scrollbar-track {
-            background: #0b0f19;
+            background: rgba(15, 23, 42, 0.6);
         }
         ::-webkit-scrollbar-thumb {
-            background: #1e293b;
+            background: rgba(59, 130, 246, 0.5);
             border-radius: 4px;
         }
-        @keyframes floatUp {
-            0% { transform: translateY(0) scale(1); opacity: 1; }
-            100% { transform: translateY(-60px) scale(1.2); opacity: 0; }
+
+        /* Shimmer effect */
+        .shimmer {
+            background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.15) 50%, rgba(255,255,255,0) 100%);
+            background-size: 200% 100%;
+            animation: shimmer 2.5s infinite;
         }
-        .floating-text {
-            position: absolute;
-            pointer-events: none;
-            animation: floatUp 0.8s ease-out forwards;
-            font-weight: 700;
-            z-index: 50;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
         }
-        @keyframes pulseGlow {
-            0%, 100% { box-shadow: 0 0 15px rgba(0, 152, 234, 0.4); }
-            50% { box-shadow: 0 0 35px rgba(0, 152, 234, 0.8); }
+
+        .glow-ice {
+            box-shadow: 0 0 15px rgba(56, 189, 248, 0.4);
         }
-        .coin-glow {
-            animation: pulseGlow 3s infinite ease-in-out;
-        }
-        @keyframes spinSlow {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        .spin-slow {
-            animation: spinSlow 20s linear infinite;
-        }
-        .rarity-common { border-color: #64748b; background: rgba(100, 116, 139, 0.1); }
-        .rarity-rare { border-color: #3b82f6; background: rgba(59, 130, 246, 0.15); box-shadow: 0 0 10px rgba(59, 130, 246, 0.3); }
-        .rarity-epic { border-color: #a855f7; background: rgba(168, 85, 247, 0.15); box-shadow: 0 0 15px rgba(168, 85, 247, 0.4); }
-        .rarity-legendary { border-color: #f59e0b; background: rgba(245, 158, 11, 0.2); box-shadow: 0 0 25px rgba(245, 158, 11, 0.6); }
     </style>
 </head>
-<body class="flex flex-col h-screen max-w-md mx-auto relative overflow-hidden bg-darkBg border-x border-slate-800">
+<body class="min-h-screen pb-20 flex flex-col justify-between max-w-md mx-auto relative shadow-2xl bg-slate-950">
 
-    <!-- TOP HEADER / BALANCE BAR -->
-    <header class="bg-cardBg/90 backdrop-blur-md px-4 py-3 flex items-center justify-between border-b border-slate-800 z-30 shrink-0">
+    <!-- TOP BAR / USER PROFILE -->
+    <header class="sticky top-0 z-40 glass-panel px-4 py-3 flex items-center justify-between border-b border-slate-800">
         <div class="flex items-center space-x-3">
-            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-ton to-sky-400 flex items-center justify-center shadow-lg shadow-ton/30">
-                <i class="fa-solid fa-gem text-white text-lg"></i>
+            <div class="relative">
+                <img id="userAvatar" src="https://placehold.co/100x100/3b82f6/ffffff?text=TG" class="w-10 h-10 rounded-full border-2 border-sky-400 object-cover" alt="Avatar">
+                <span class="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 border-2 border-slate-900 rounded-full"></span>
             </div>
             <div>
-                <div class="flex items-center space-x-1.5">
-                    <span id="header-ton" class="text-lg font-bold tracking-tight text-white">10.00</span>
-                    <span class="text-ton font-semibold text-sm">TON</span>
-                </div>
-                <div class="flex items-center space-x-2 text-xs text-slate-400">
-                    <span>Ур. <span id="header-level" class="text-slate-200 font-medium">1</span></span>
-                    <span>•</span>
-                    <span id="header-passive" class="text-emerald-400 font-medium">+0.00 TON/сек</span>
-                </div>
+                <h3 id="userName" class="font-bold text-sm text-slate-100 flex items-center gap-1">
+                    @telegram_user
+                    <i class="fa-solid fa-circle-check text-sky-400 text-xs"></i>
+                </h3>
+                <p id="userRole" class="text-[10px] text-slate-400 font-semibold tracking-wider uppercase">Player</p>
             </div>
         </div>
 
-        <div class="flex items-center space-x-2">
-            <button onclick="openModal('wallet-modal')" class="bg-slate-800/80 hover:bg-slate-700 text-slate-200 px-3 py-1.5 rounded-lg text-xs font-medium border border-slate-700 transition flex items-center space-x-1.5">
-                <i class="fa-solid fa-wallet text-ton"></i>
-                <span>Кошелек</span>
-            </button>
+        <!-- Balance Pill -->
+        <div class="flex items-center gap-2 bg-slate-900/90 border border-sky-500/30 px-3 py-1.5 rounded-full shadow-inner">
+            <div class="w-5 h-5 rounded-full bg-gradient-to-tr from-sky-400 to-blue-600 flex items-center justify-center text-xs text-white glow-ice">
+                <i class="fa-solid fa-snowflake"></i>
+            </div>
+            <div class="text-right">
+                <span id="userBalance" class="font-extrabold text-sm text-sky-300">0</span>
+                <span class="text-[10px] text-sky-400/80 font-bold ml-0.5">ICE</span>
+            </div>
         </div>
     </header>
 
-    <!-- MAIN CONTENT CONTAINER -->
-    <main class="flex-1 overflow-y-auto relative pb-24 pt-2">
-        
-        <!-- TAB 1: CLICKER / MINING -->
-        <section id="tab-clicker" class="tab-content flex flex-col items-center justify-between h-full px-4 py-2">
-            <!-- Level progress -->
-            <div class="w-full bg-slate-800/60 p-3 rounded-xl border border-slate-700/50 mb-4">
-                <div class="flex justify-between text-xs text-slate-300 mb-1.5">
-                    <span>Прогресс уровня</span>
-                    <span id="xp-text">0 / 100 XP</span>
-                </div>
-                <div class="w-full bg-slate-900 h-2 rounded-full overflow-hidden">
-                    <div id="xp-bar" class="bg-gradient-to-r from-ton to-sky-400 h-full transition-all duration-300" style="width: 0%"></div>
-                </div>
+    <!-- NOTIFICATION TOAST -->
+    <div id="toast" class="fixed top-16 left-1/2 -translate-x-1/2 z-50 transition-all duration-300 opacity-0 pointer-events-none transform -translate-y-4 w-11/12 max-w-xs">
+        <div class="glass-panel rounded-xl p-3 shadow-2xl flex items-center space-x-3 border-l-4 border-sky-400 bg-slate-900/95">
+            <div id="toastIcon" class="text-sky-400 text-xl"><i class="fa-solid fa-circle-info"></i></div>
+            <p id="toastMessage" class="text-xs text-slate-200 font-medium"></p>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT AREA CONTAINER -->
+    <main class="p-4 flex-1 overflow-y-auto">
+
+        <!-- 1. WHEEL / UPGRADER TAB -->
+        <section id="tab-wheel" class="tab-content flex flex-col items-center justify-between space-y-4">
+            <div class="text-center space-y-1">
+                <h1 class="text-xl font-black bg-clip-text text-transparent bg-gradient-to-r from-sky-400 via-indigo-300 to-purple-400">
+                    TG Upgrader Wheel
+                </h1>
+                <p class="text-xs text-slate-400">Испытай удачу и выбей эксклюзивные Telegram NFT Подарки!</p>
             </div>
 
-            <!-- Clicker area -->
-            <div class="flex flex-col items-center justify-center my-auto relative w-full">
-                <div class="absolute w-64 h-64 bg-ton/10 rounded-full blur-3xl pointer-events-none"></div>
-                
-                <div id="tap-container" class="relative cursor-pointer transition-transform active:scale-95 py-6 select-none" onclick="tapCoin(event)">
-                    <div class="w-48 h-48 rounded-full bg-gradient-to-b from-slate-800 to-cardBg border-4 border-ton/50 coin-glow flex items-center justify-center relative overflow-hidden shadow-2xl">
-                        <div class="absolute inset-0 bg-gradient-to-tr from-ton/20 to-transparent pointer-events-none"></div>
-                        <i class="fa-solid fa-cube text-7xl text-ton drop-shadow-[0_0_15px_rgba(0,152,234,0.6)]"></i>
+            <!-- Wheel UI -->
+            <div class="wheel-container my-2">
+                <div class="wheel-pointer"></div>
+                <canvas id="wheelCanvas" width="300" height="300"></canvas>
+            </div>
+
+            <!-- Spin Controls -->
+            <div class="w-full space-y-3">
+                <div class="flex justify-between items-center bg-slate-900/80 p-3 rounded-xl border border-slate-800 text-xs">
+                    <span class="text-slate-400">Стоимость кручения:</span>
+                    <span class="font-bold text-sky-400 flex items-center gap-1">
+                        <i class="fa-solid fa-snowflake"></i> 50 ICE
+                    </span>
+                </div>
+
+                <button id="spinBtn" onclick="spinWheel()" class="w-full py-3.5 px-6 rounded-xl font-extrabold text-white text-base bg-gradient-to-r from-sky-500 via-blue-600 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 active:scale-95 transition-all shadow-lg shadow-sky-500/25 flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-arrows-spin text-lg"></i>
+                    <span>ВРАЩАТЬ КОЛЕСО</span>
+                </button>
+            </div>
+
+            <!-- Last Drop Preview -->
+            <div class="w-full glass-panel rounded-xl p-3 border border-slate-800">
+                <div class="text-[11px] text-slate-400 uppercase font-bold tracking-wider mb-2 flex justify-between">
+                    <span>Выпадение из колеса</span>
+                    <span class="text-sky-400">Шансы RARE/LEGENDARY</span>
+                </div>
+                <div class="flex items-center space-x-3 bg-slate-900/60 p-2 rounded-lg">
+                    <div id="lastDropIcon" class="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center text-2xl">
+                        🎁
+                    </div>
+                    <div class="text-xs">
+                        <div id="lastDropName" class="font-bold text-slate-200">Готов к кручению?</div>
+                        <div id="lastDropRarity" class="text-[10px] text-slate-400">Нажми кнопкy выше</div>
                     </div>
                 </div>
-                
-                <div class="text-center mt-2">
-                    <p class="text-slate-400 text-sm">Тапай по кубу, чтобы майнить TON</p>
-                    <p class="text-xs text-slate-500 mt-1">+<span id="click-power-val">0.10</span> TON за тап</p>
-                </div>
-            </div>
-
-            <!-- Upgrades List -->
-            <div class="w-full mt-4">
-                <h3 class="text-sm font-semibold text-slate-300 mb-2 px-1 flex items-center justify-between">
-                    <span>Пассивный майнинг</span>
-                    <span class="text-xs text-slate-500">Авто-доход</span>
-                </h3>
-                <div id="upgrades-list" class="space-y-2 max-h-48 overflow-y-auto pr-1">
-                    <!-- Populated dynamically -->
-                </div>
             </div>
         </section>
 
-        <!-- TAB 2: CASES -->
-        <section id="tab-cases" class="tab-content hidden px-4 py-2">
-            <div class="text-center mb-4">
-                <h2 class="text-lg font-bold text-white">Кейсы с NFT</h2>
-                <p class="text-xs text-slate-400">Открывай кейсы и получай уникальные NFT разной редкости</p>
-            </div>
-
-            <div id="cases-container" class="space-y-4">
-                <!-- Populated via JS -->
-            </div>
-        </section>
-
-        <!-- TAB 3: INVENTORY -->
-        <section id="tab-inventory" class="tab-content hidden px-4 py-2">
-            <div class="flex items-center justify-between mb-3">
+        <!-- 2. INVENTORY TAB -->
+        <section id="tab-inventory" class="tab-content hidden space-y-4">
+            <div class="flex items-center justify-between">
                 <div>
-                    <h2 class="text-lg font-bold text-white">Инвентарь NFT</h2>
-                    <p class="text-xs text-slate-400">Ваша коллекция цифровых активов</p>
+                    <h2 class="text-lg font-bold text-slate-100">Инвентарь TG Gifts</h2>
+                    <p class="text-xs text-slate-400">Все сохраненные NFT подарки</p>
                 </div>
-                <div class="text-xs bg-slate-800 px-2.5 py-1 rounded-lg border border-slate-700 text-slate-300">
-                    Всего: <span id="inventory-count" class="font-bold text-ton">0</span>
-                </div>
+                <span id="inventoryCount" class="text-xs font-bold px-2.5 py-1 rounded-full bg-sky-500/20 text-sky-400 border border-sky-500/30">0 шт</span>
             </div>
 
-            <!-- Filter tabs -->
-            <div class="flex space-x-1.5 overflow-x-auto pb-2 mb-2 text-xs">
-                <button onclick="filterInventory('all')" class="inv-filter-btn px-3 py-1.5 rounded-lg bg-ton text-white font-medium transition whitespace-nowrap">Все</button>
-                <button onclick="filterInventory('Common')" class="inv-filter-btn px-3 py-1.5 rounded-lg bg-slate-800 text-slate-400 hover:text-white transition whitespace-nowrap">Common</button>
-                <button onclick="filterInventory('Rare')" class="inv-filter-btn px-3 py-1.5 rounded-lg bg-slate-800 text-slate-400 hover:text-white transition whitespace-nowrap">Rare</button>
-                <button onclick="filterInventory('Epic')" class="inv-filter-btn px-3 py-1.5 rounded-lg bg-slate-800 text-slate-400 hover:text-white transition whitespace-nowrap">Epic</button>
-                <button onclick="filterInventory('Legendary')" class="inv-filter-btn px-3 py-1.5 rounded-lg bg-slate-800 text-slate-400 hover:text-white transition whitespace-nowrap">Legendary</button>
-            </div>
-
-            <div id="inventory-grid" class="grid grid-cols-2 gap-3 pb-4">
-                <!-- Populated via JS -->
+            <!-- Grid of Gifts -->
+            <div id="inventoryGrid" class="grid grid-cols-2 gap-3 min-h-[250px]">
+                <!-- Dynamic Items Inserted Here -->
             </div>
         </section>
 
-        <!-- TAB 4: CRAFTING -->
-        <section id="tab-craft" class="tab-content hidden px-4 py-2">
-            <div class="text-center mb-4">
-                <h2 class="text-lg font-bold text-white">Крафт NFT</h2>
-                <p class="text-xs text-slate-400">Объедините 3 одинаковых NFT для получения NFT более высокого ранга</p>
+        <!-- 3. WITHDRAW TAB -->
+        <section id="tab-withdraw" class="tab-content hidden space-y-4">
+            <div class="text-center space-y-1">
+                <div class="w-12 h-12 bg-sky-500/10 text-sky-400 rounded-full flex items-center justify-center mx-auto text-xl border border-sky-500/20 glow-ice">
+                    <i class="fa-solid fa-wallet"></i>
+                </div>
+                <h2 class="text-lg font-bold text-slate-100">Вывод валюты ICE</h2>
+                <p class="text-xs text-slate-400">Перевод накопленных ICE на ваш TON Кошелек</p>
             </div>
 
-            <div class="bg-cardBg border border-slate-800 p-4 rounded-2xl mb-4">
-                <div class="flex justify-center items-center space-x-3 mb-6">
-                    <div id="craft-slot-0" onclick="openCraftSelector(0)" class="w-20 h-20 rounded-xl border-2 border-dashed border-slate-700 flex flex-col items-center justify-center cursor-pointer hover:border-ton transition bg-slate-900/50">
-                        <i class="fa-solid fa-plus text-slate-500 text-xl mb-1"></i>
-                        <span class="text-[10px] text-slate-500">Слот 1</span>
-                    </div>
-                    <div id="craft-slot-1" onclick="openCraftSelector(1)" class="w-20 h-20 rounded-xl border-2 border-dashed border-slate-700 flex flex-col items-center justify-center cursor-pointer hover:border-ton transition bg-slate-900/50">
-                        <i class="fa-solid fa-plus text-slate-500 text-xl mb-1"></i>
-                        <span class="text-[10px] text-slate-500">Слот 2</span>
-                    </div>
-                    <div id="craft-slot-2" onclick="openCraftSelector(2)" class="w-20 h-20 rounded-xl border-2 border-dashed border-slate-700 flex flex-col items-center justify-center cursor-pointer hover:border-ton transition bg-slate-900/50">
-                        <i class="fa-solid fa-plus text-slate-500 text-xl mb-1"></i>
-                        <span class="text-[10px] text-slate-500">Слот 3</span>
-                    </div>
-                </div>
-
-                <div class="text-center mb-4">
-                    <p id="craft-status-text" class="text-xs text-slate-400">Выберите 3 NFT одинаковой редкости</p>
-                </div>
-
-                <button id="craft-btn" onclick="executeCraft()" disabled class="w-full py-3 rounded-xl bg-slate-800 text-slate-500 font-bold transition cursor-not-allowed">
-                    Создать NFT (0/3)
-                </button>
-            </div>
-
-            <div>
-                <h3 class="text-sm font-semibold text-slate-300 mb-2">Шансы крафта:</h3>
-                <div class="space-y-2 text-xs text-slate-400 bg-cardBg/50 p-3 rounded-xl border border-slate-800/80">
-                    <div class="flex justify-between"><span>3x Common ➔</span> <span class="text-blue-400 font-medium">100% Rare</span></div>
-                    <div class="flex justify-between"><span>3x Rare ➔</span> <span class="text-purple-400 font-medium">100% Epic</span></div>
-                    <div class="flex justify-between"><span>3x Epic ➔</span> <span class="text-amber-400 font-medium">100% Legendary</span></div>
+            <!-- Warning Notice -->
+            <div class="p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl flex items-start space-x-2 text-xs text-amber-200">
+                <i class="fa-solid fa-triangle-exclamation text-amber-400 text-sm mt-0.5"></i>
+                <div>
+                    <strong class="font-bold">Важная информация:</strong> Выводить можно <span class="underline font-bold">только валюту ICE</span>. Предметы и Telegram NFT подарки выводить нельзя, они остаются в приложении!
                 </div>
             </div>
-        </section>
 
-        <!-- TAB 5: UPGRADER -->
-        <section id="tab-upgrader" class="tab-content hidden px-4 py-2">
-            <div class="text-center mb-4">
-                <h2 class="text-lg font-bold text-white">Апгрейдер TON & NFT</h2>
-                <p class="text-xs text-slate-400">Умножайте свой капитал на риск-рулетке</p>
-            </div>
-
-            <div class="bg-cardBg border border-slate-800 p-4 rounded-2xl mb-4">
-                <!-- Mode switch -->
-                <div class="flex bg-slate-900 p-1 rounded-xl mb-4 border border-slate-800">
-                    <button onclick="setUpgraderMode('ton')" id="upg-mode-ton" class="flex-1 py-1.5 text-xs font-semibold rounded-lg bg-ton text-white transition">Баланс TON</button>
-                    <button onclick="setUpgraderMode('nft')" id="upg-mode-nft" class="flex-1 py-1.5 text-xs font-semibold rounded-lg text-slate-400 transition">NFT Активы</button>
+            <!-- Form -->
+            <div class="glass-panel p-4 rounded-xl space-y-4 border border-slate-800">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Адрес TON Кошелька / Telegram Wallet</label>
+                    <input type="text" id="withdrawWallet" placeholder="EQD... или @wallet" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-xs text-slate-100 focus:outline-none focus:border-sky-500">
                 </div>
 
-                <!-- Input section -->
-                <div id="upg-ton-section" class="mb-4">
-                    <label class="block text-xs text-slate-400 mb-1.5">Сумма ставки (TON):</label>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Сумма для вывода (ICE)</label>
                     <div class="relative">
-                        <input type="number" id="upg-ton-amount" value="1.0" min="0.1" step="0.1" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-white text-sm focus:outline-none focus:border-ton">
-                        <div class="absolute right-3 top-2.5 text-xs text-ton font-bold">TON</div>
-                    </div>
-                    <div class="flex space-x-2 mt-2">
-                        <button onclick="setUpgTon(0.5)" class="flex-1 bg-slate-800 hover:bg-slate-700 text-xs py-1 rounded-lg text-slate-300">0.5</button>
-                        <button onclick="setUpgTon(1.0)" class="flex-1 bg-slate-800 hover:bg-slate-700 text-xs py-1 rounded-lg text-slate-300">1.0</button>
-                        <button onclick="setUpgTon(5.0)" class="flex-1 bg-slate-800 hover:bg-slate-700 text-xs py-1 rounded-lg text-slate-300">5.0</button>
-                        <button onclick="setUpgMax()" class="flex-1 bg-slate-800 hover:bg-slate-700 text-xs py-1 rounded-lg text-ton font-medium">MAX</button>
+                        <input type="number" id="withdrawAmount" placeholder="Мин. 100 ICE" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-xs text-slate-100 focus:outline-none focus:border-sky-500">
+                        <button onclick="setMaxWithdraw()" class="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] font-bold bg-sky-500/20 text-sky-400 px-2 py-1 rounded">МАКС</button>
                     </div>
                 </div>
 
-                <div id="upg-nft-section" class="mb-4 hidden">
-                    <label class="block text-xs text-slate-400 mb-1.5">Выберите NFT для апгрейда:</label>
-                    <div id="upg-nft-selector" onclick="openUpgNftModal()" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 flex items-center justify-between cursor-pointer hover:border-ton transition">
-                        <span id="upg-selected-nft-text" class="text-xs text-slate-400">Нажмите, чтобы выбрать NFT</span>
-                        <i class="fa-solid fa-chevron-right text-xs text-slate-500"></i>
-                    </div>
-                </div>
-
-                <!-- Multiplier selection -->
-                <div class="mb-4">
-                    <div class="flex justify-between items-center mb-1.5">
-                        <label class="text-xs text-slate-400">Множитель выигрыша:</label>
-                        <span id="upg-chance-text" class="text-xs text-amber-400 font-bold">Шанс: 48.5%</span>
-                    </div>
-                    <div class="grid grid-cols-4 gap-2">
-                        <button onclick="setMultiplier(1.5)" class="upg-mult-btn py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs font-bold text-slate-300 hover:border-ton transition" data-mult="1.5">1.5x</button>
-                        <button onclick="setMultiplier(2.0)" class="upg-mult-btn py-2 rounded-xl bg-ton border border-ton text-xs font-bold text-white transition shadow-lg shadow-ton/30" data-mult="2.0">2.0x</button>
-                        <button onclick="setMultiplier(3.0)" class="upg-mult-btn py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs font-bold text-slate-300 hover:border-ton transition" data-mult="3.0">3.0x</button>
-                        <button onclick="setMultiplier(5.0)" class="upg-mult-btn py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs font-bold text-slate-300 hover:border-ton transition" data-mult="5.0">5.0x</button>
-                    </div>
-                </div>
-
-                <!-- Wheel animation box -->
-                <div class="bg-slate-900 rounded-xl p-4 mb-4 border border-slate-800 text-center relative overflow-hidden h-28 flex flex-col items-center justify-center">
-                    <div id="upg-visual" class="text-slate-400 text-sm font-medium">
-                        Готов к запуску
-                    </div>
-                    <div class="absolute bottom-0 left-0 right-0 h-1 bg-slate-800">
-                        <div id="upg-progress-bar" class="h-full bg-ton w-0 transition-all"></div>
-                    </div>
-                </div>
-
-                <button onclick="startUpgrader()" id="upg-action-btn" class="w-full py-3 rounded-xl bg-gradient-to-r from-ton to-sky-500 text-white font-bold shadow-lg shadow-ton/30 hover:brightness-110 transition">
-                    Умножить
+                <button onclick="processWithdraw()" class="w-full py-3 rounded-xl font-bold text-xs bg-gradient-to-r from-sky-500 to-blue-600 text-white hover:from-sky-400 hover:to-blue-500 transition-all shadow-md">
+                    Запросить вывод ICE
                 </button>
+            </div>
+        </section>
+
+        <!-- 4. ADMIN PANEL TAB -->
+        <section id="tab-admin" class="tab-content hidden space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <div class="flex items-center space-x-2">
+                    <span class="w-3 h-3 bg-red-500 rounded-full animate-ping"></span>
+                    <h2 class="text-base font-bold text-slate-100">Админ-Панель</h2>
+                </div>
+                <span class="text-[10px] bg-red-500/20 text-red-400 border border-red-500/30 px-2 py-0.5 rounded font-bold">SUPERADMIN</span>
+            </div>
+
+            <!-- Player Selection Section -->
+            <div class="space-y-2">
+                <label class="block text-xs font-bold text-slate-300 uppercase tracking-wider">База Игроков (Выбор):</label>
+                <div id="adminPlayersList" class="space-y-2 max-h-48 overflow-y-auto pr-1">
+                    <!-- Players rendered dynamically -->
+                </div>
+            </div>
+
+            <!-- Selected Player Controls -->
+            <div id="adminControlsArea" class="glass-panel p-4 rounded-xl border border-slate-800 space-y-4">
+                <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+                    <div>
+                        <span class="text-[10px] text-slate-400 block">Управление игроком:</span>
+                        <strong id="selectedPlayerName" class="text-sm text-sky-400 font-bold">Никто не выбран</strong>
+                    </div>
+                    <span id="selectedPlayerBalance" class="text-xs text-slate-300 bg-slate-900 px-2.5 py-1 rounded-full border border-slate-700">0 ICE</span>
+                </div>
+
+                <!-- Add/Remove Balance -->
+                <div class="space-y-2">
+                    <label class="block text-xs font-semibold text-slate-300">Начисление / Списание ICE</label>
+                    <div class="flex gap-2">
+                        <input type="number" id="adminBalanceInput" placeholder="Количество" class="w-1/2 bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-slate-100">
+                        <button onclick="adminModifyBalance(true)" class="w-1/4 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-lg p-2 transition">
+                            + Начислить
+                        </button>
+                        <button onclick="adminModifyBalance(false)" class="w-1/4 bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs rounded-lg p-2 transition">
+                            - Списать
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Inspect Player Inventory & Add Gift (+) -->
+                <div class="space-y-2 pt-2 border-t border-slate-800">
+                    <div class="flex justify-between items-center">
+                        <span class="text-xs font-semibold text-slate-300">Инвентарь Игрока:</span>
+                        <button onclick="openAddGiftModal()" class="flex items-center gap-1 text-xs bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded-lg font-bold shadow-md transition">
+                            <i class="fa-solid fa-plus text-xs"></i> Выдать NFT Подарок
+                        </button>
+                    </div>
+
+                    <div id="adminPlayerInventory" class="grid grid-cols-3 gap-2 max-h-32 overflow-y-auto p-1 bg-slate-900/60 rounded-lg">
+                        <div class="col-span-3 text-center text-slate-500 text-xs py-3">Выберите игрока для просмотра</div>
+                    </div>
+                </div>
             </div>
         </section>
 
     </main>
 
-    <!-- BOTTOM NAVIGATION BAR -->
-    <nav class="absolute bottom-0 left-0 right-0 bg-cardBg/95 backdrop-blur-md border-t border-slate-800 py-2 px-3 flex justify-around items-center z-30">
-        <button onclick="switchTab('clicker')" class="nav-btn flex flex-col items-center text-ton transition" data-tab="clicker">
-            <i class="fa-solid fa-cube text-lg mb-1"></i>
-            <span class="text-[10px] font-medium">Майнинг</span>
+    <!-- BOTTOM NAVIGATION -->
+    <nav class="fixed bottom-0 left-0 right-0 max-w-md mx-auto glass-panel border-t border-slate-800 px-2 py-2 flex justify-around items-center z-40 bg-slate-950/90">
+        <button onclick="switchTab('wheel')" id="nav-wheel" class="nav-btn flex flex-col items-center w-1/4 text-sky-400 transition-colors">
+            <i class="fa-solid fa-dharmachakra text-lg mb-0.5"></i>
+            <span class="text-[10px] font-bold">Колесо</span>
         </button>
-        <button onclick="switchTab('cases')" class="nav-btn flex flex-col items-center text-slate-400 hover:text-slate-200 transition" data-tab="cases">
-            <i class="fa-solid fa-box-open text-lg mb-1"></i>
-            <span class="text-[10px] font-medium">Кейсы</span>
+
+        <button onclick="switchTab('inventory')" id="nav-inventory" class="nav-btn flex flex-col items-center w-1/4 text-slate-400 hover:text-slate-200 transition-colors">
+            <i class="fa-solid fa-box-open text-lg mb-0.5"></i>
+            <span class="text-[10px] font-bold">Инвентарь</span>
         </button>
-        <button onclick="switchTab('inventory')" class="nav-btn flex flex-col items-center text-slate-400 hover:text-slate-200 transition" data-tab="inventory">
-            <i class="fa-solid fa-layer-group text-lg mb-1"></i>
-            <span class="text-[10px] font-medium">Инвентарь</span>
+
+        <button onclick="switchTab('withdraw')" id="nav-withdraw" class="nav-btn flex flex-col items-center w-1/4 text-slate-400 hover:text-slate-200 transition-colors">
+            <i class="fa-solid fa-arrow-up-right-from-circle text-lg mb-0.5"></i>
+            <span class="text-[10px] font-bold">Вывод</span>
         </button>
-        <button onclick="switchTab('craft')" class="nav-btn flex flex-col items-center text-slate-400 hover:text-slate-200 transition" data-tab="craft">
-            <i class="fa-solid fa-hammer text-lg mb-1"></i>
-            <span class="text-[10px] font-medium">Крафт</span>
-        </button>
-        <button onclick="switchTab('upgrader')" class="nav-btn flex flex-col items-center text-slate-400 hover:text-slate-200 transition" data-tab="upgrader">
-            <i class="fa-solid fa-bolt text-lg mb-1"></i>
-            <span class="text-[10px] font-medium">Апгрейд</span>
+
+        <button onclick="switchTab('admin')" id="nav-admin" class="nav-btn flex flex-col items-center w-1/4 text-slate-400 hover:text-slate-200 transition-colors">
+            <i class="fa-solid fa-user-shield text-lg mb-0.5"></i>
+            <span class="text-[10px] font-bold">Админка</span>
         </button>
     </nav>
 
-    <!-- MODAL: CASE OPENING ANIMATION -->
-    <div id="case-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-cardBg border border-slate-700 w-full max-w-sm rounded-3xl p-6 text-center relative shadow-2xl">
-            <h3 id="case-modal-title" class="text-lg font-bold text-white mb-2">Открытие кейса...</h3>
-            <p class="text-xs text-slate-400 mb-6">Барабан выбирает вашу награду</p>
-            
-            <div id="case-roulette-box" class="bg-slate-900 border border-slate-700 rounded-2xl h-36 flex items-center justify-center relative overflow-hidden mb-6 shadow-inner">
-                <div class="absolute inset-y-0 w-1 bg-amber-400 z-10 shadow-[0_0_10px_#f59e0b]"></div>
-                <div id="case-items-strip" class="flex space-x-3 absolute left-0 transition-all duration-3000 ease-out px-32">
-                    <!-- Strip items populated by JS -->
+    <!-- MODAL: ADD NFT GIFT (ADMIN) -->
+    <div id="addGiftModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+        <div class="glass-panel w-full max-w-xs rounded-2xl p-4 space-y-4 border border-slate-700 bg-slate-900 shadow-2xl">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+                <h3 class="text-sm font-bold text-slate-100 flex items-center gap-1.5">
+                    <i class="fa-solid fa-gift text-indigo-400"></i> Выдача NFT Подарка
+                </h3>
+                <button onclick="closeAddGiftModal()" class="text-slate-400 hover:text-white">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Quick Presets -->
+            <div>
+                <label class="block text-[11px] font-semibold text-slate-400 mb-1">Быстрый Пресет Подарка Telegram:</label>
+                <div class="grid grid-cols-4 gap-1.5">
+                    <button onclick="applyGiftPreset('Spiced Wine', '🍷', 'Common')" class="p-1.5 bg-slate-800 hover:bg-slate-700 rounded text-center text-xs border border-slate-700">
+                        🍷 Wine
+                    </button>
+                    <button onclick="applyGiftPreset('Red Rose', '🌹', 'Common')" class="p-1.5 bg-slate-800 hover:bg-slate-700 rounded text-center text-xs border border-slate-700">
+                        🌹 Rose
+                    </button>
+                    <button onclick="applyGiftPreset('Blue Star', '⭐', 'Rare')" class="p-1.5 bg-slate-800 hover:bg-slate-700 rounded text-center text-xs border border-slate-700">
+                        ⭐ Star
+                    </button>
+                    <button onclick="applyGiftPreset('Diamond Ring', '💍', 'Legendary')" class="p-1.5 bg-slate-800 hover:bg-slate-700 rounded text-center text-xs border border-slate-700">
+                        💍 Ring
+                    </button>
                 </div>
             </div>
 
-            <div id="case-result-info" class="hidden mb-6 animate-fade-in">
-                <div id="case-won-badge" class="inline-block px-3 py-1 rounded-full text-xs font-bold mb-2"></div>
-                <h4 id="case-won-name" class="text-base font-bold text-white"></h4>
-                <p id="case-won-value" class="text-xs text-slate-400 mt-1"></p>
-            </div>
-
-            <button id="case-close-btn" onclick="closeCaseModal()" class="w-full py-3 rounded-xl bg-ton text-white font-bold shadow-lg shadow-ton/30 hidden">
-                Забрать в инвентарь
-            </button>
-        </div>
-    </div>
-
-    <!-- MODAL: CRAFT SELECTOR -->
-    <div id="craft-select-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-cardBg border border-slate-700 w-full max-w-sm rounded-3xl p-5 relative shadow-2xl max-h-[80vh] flex flex-col">
-            <div class="flex justify-between items-center mb-3">
-                <h3 class="text-base font-bold text-white">Выберите NFT для слота</h3>
-                <button onclick="closeCraftSelector()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
-            </div>
-            <p class="text-xs text-slate-400 mb-3">Доступны NFT редкости: <span id="craft-target-rarity" class="font-bold text-white">Любая</span></p>
-            <div id="craft-selector-list" class="flex-1 overflow-y-auto space-y-2 pr-1">
-                <!-- Populated via JS -->
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL: UPGRADER NFT SELECTOR -->
-    <div id="upg-nft-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-cardBg border border-slate-700 w-full max-w-sm rounded-3xl p-5 relative shadow-2xl max-h-[80vh] flex flex-col">
-            <div class="flex justify-between items-center mb-3">
-                <h3 class="text-base font-bold text-white">Выберите NFT для ставки</h3>
-                <button onclick="closeUpgNftModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
-            </div>
-            <div id="upg-nft-list" class="flex-1 overflow-y-auto space-y-2 pr-1">
-                <!-- Populated via JS -->
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL: WALLET INFO -->
-    <div id="wallet-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-        <div class="bg-cardBg border border-slate-700 w-full max-w-sm rounded-3xl p-6 relative shadow-2xl text-center">
-            <div class="w-16 h-16 bg-ton/20 border border-ton/50 rounded-2xl flex items-center justify-center mx-auto mb-4 text-ton text-2xl shadow-lg shadow-ton/20">
-                <i class="fa-solid fa-wallet"></i>
-            </div>
-            <h3 class="text-lg font-bold text-white mb-1">TON Wallet</h3>
-            <p class="text-xs text-slate-400 mb-4">EQD4...9xK2 (Подключено)</p>
-            
-            <div class="bg-slate-900 p-4 rounded-2xl border border-slate-800 mb-6 text-left space-y-2">
-                <div class="flex justify-between text-xs">
-                    <span class="text-slate-400">Баланс кошелька:</span>
-                    <span id="wallet-modal-balance" class="font-bold text-white">10.00 TON</span>
+            <!-- Custom Form -->
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-[11px] font-semibold text-slate-300 mb-1">Название Подарка</label>
+                    <input type="text" id="giftNameInput" placeholder="Например: Spiced Wine" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-slate-100 focus:outline-none focus:border-indigo-500">
                 </div>
-                <div class="flex justify-between text-xs">
-                    <span class="text-slate-400">Стоимость инвентаря:</span>
-                    <span id="wallet-modal-inv-value" class="font-bold text-emerald-400">0.00 TON</span>
+
+                <div>
+                    <label class="block text-[11px] font-semibold text-slate-300 mb-1">Иконка / Emoji / SVG Ссылка</label>
+                    <input type="text" id="giftIconInput" placeholder="Emoji (🎁) или URL карточки" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-slate-100 focus:outline-none focus:border-indigo-500">
+                </div>
+
+                <div>
+                    <label class="block text-[11px] font-semibold text-slate-300 mb-1">Редкость (Rarity)</label>
+                    <select id="giftRarityInput" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-slate-100 focus:outline-none focus:border-indigo-500">
+                        <option value="Common">Common (Обычный)</option>
+                        <option value="Rare">Rare (Редкий)</option>
+                        <option value="Legendary">Legendary (Легендарный)</option>
+                    </select>
                 </div>
             </div>
 
-            <button onclick="closeModal('wallet-modal')" class="w-full py-3 rounded-xl bg-slate-800 text-white font-bold hover:bg-slate-700 transition">
-                Закрыть
-            </button>
+            <!-- Buttons -->
+            <div class="flex gap-2 pt-2">
+                <button onclick="closeAddGiftModal()" class="w-1/2 py-2 rounded-lg text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700">
+                    Отмена
+                </button>
+                <button onclick="adminConfirmAddGift()" class="w-1/2 py-2 rounded-lg text-xs font-bold bg-indigo-600 text-white hover:bg-indigo-500 shadow-md">
+                    Зачислить
+                </button>
+            </div>
         </div>
     </div>
 
-    <!-- TOAST NOTIFICATION -->
-    <div id="toast" class="fixed top-5 left-1/2 -translate-x-1/2 bg-slate-900/95 border border-slate-700 text-white px-4 py-2.5 rounded-xl shadow-2xl text-xs font-medium z-50 transition-all duration-300 opacity-0 pointer-events-none translate-y-[-20px] flex items-center space-x-2">
-        <i id="toast-icon" class="fa-solid fa-circle-check text-emerald-400"></i>
-        <span id="toast-msg">Успешно!</span>
-    </div>
-
-    <!-- JAVASCRIPT GAME LOGIC -->
+    <!-- JAVASCRIPT LOGIC -->
     <script>
-        // Game State
-        let gameState = {
-            tonBalance: 10.00,
-            xp: 0,
-            level: 1,
-            clickPower: 0.10,
-            passiveIncome: 0.0,
-            upgrades: {
-                autoMiner: { level: 0, cost: 3.0, power: 0.05, mult: 1.18 },
-                gpuRig: { level: 0, cost: 15.0, power: 0.35, mult: 1.20 },
-                farmNode: { level: 0, cost: 70.0, power: 1.80, mult: 1.22 }
-            },
-            inventory: [],
-            activeTab: 'clicker'
-        };
-
-        // NFT Database definitions
-        const nftPool = {
-            Common: [
-                { name: "Crypto Cat", value: 0.8, icon: "fa-cat", color: "#64748b" },
-                { name: "Basic Miner", value: 1.2, icon: "fa-hard-drive", color: "#64748b" },
-                { name: "Pixel Coin", value: 1.5, icon: "fa-coins", color: "#64748b" },
-                { name: "Old ASIC", value: 2.0, icon: "fa-microchip", color: "#64748b" }
-            ],
-            Rare: [
-                { name: "Cyberpunk Ape", value: 4.5, icon: "fa-ghost", color: "#3b82f6" },
-                { name: "Solana Sol", value: 6.0, icon: "fa-bolt", color: "#3b82f6" },
-                { name: "ETH Diamond", value: 8.5, icon: "fa-gem", color: "#3b82f6" },
-                { name: "Fast Node", value: 10.0, icon: "fa-network-wired", color: "#3b82f6" }
-            ],
-            Epic: [
-                { name: "TON Whale", value: 25.0, icon: "fa-water", color: "#a855f7" },
-                { name: "Quantum Rig", value: 38.0, icon: "fa-server", color: "#a855f7" },
-                { name: "Cyber Punk", value: 50.0, icon: "fa-vr-cardboard", color: "#a855f7" }
-            ],
-            Legendary: [
-                { name: "Satoshi Hologram", value: 120.0, icon: "fa-user-secret", color: "#f59e0b" },
-                { name: "Telegram Founder", value: 200.0, icon: "fa-paper-plane", color: "#f59e0b" },
-                { name: "Matrix Core", value: 350.0, icon: "fa-globe", color: "#f59e0b" }
-            ]
-        };
-
-        // Cases definitions
-        const casesConfig = [
-            { id: 'bronze', name: 'Бронзовый кейс', price: 2.0, icon: 'fa-box', color: 'from-amber-700 to-amber-900', border: 'border-amber-700/50', rates: { Common: 0.70, Rare: 0.25, Epic: 0.04, Legendary: 0.01 } },
-            { id: 'silver', name: 'Серебряный кейс', price: 6.0, icon: 'fa-box-open', color: 'from-slate-400 to-slate-600', border: 'border-slate-400/50', rates: { Common: 0.40, Rare: 0.45, Epic: 0.13, Legendary: 0.02 } },
-            { id: 'gold', name: 'Золотой кейс', price: 20.0, icon: 'fa-gift', color: 'from-amber-400 to-yellow-600', border: 'border-amber-400/50', rates: { Common: 0.10, Rare: 0.50, Epic: 0.33, Legendary: 0.07 } }
+        // --- 1. DATA & STATE MANAGEMENT ---
+        const WHEEL_ITEMS = [
+            { name: 'Spiced Wine', icon: '🍷', rarity: 'Common', color: '#3b82f6' },
+            { name: 'Red Rose', icon: '🌹', rarity: 'Common', color: '#ef4444' },
+            { name: 'Blue Star', icon: '⭐', rarity: 'Rare', color: '#06b6d4' },
+            { name: 'Heart', icon: '💖', rarity: 'Common', color: '#ec4899' },
+            { name: 'Diamond Ring', icon: '💍', rarity: 'Legendary', color: '#8b5cf6' },
+            { name: 'Golden Crown', icon: '👑', rarity: 'Legendary', color: '#f59e0b' },
+            { name: 'Sweet Cookie', icon: '🍪', rarity: 'Common', color: '#10b981' },
+            { name: 'Crypto Rocket', icon: '🚀', rarity: 'Rare', color: '#6366f1' }
         ];
 
-        // Crafting state
-        let craftSlots = [null, null, null];
-        let currentCraftSlotIndex = null;
+        // Default Mock Players Database
+        const DEFAULT_PLAYERS = [
+            {
+                id: 'usr_me',
+                name: '@durov',
+                role: 'ADMIN',
+                avatar: 'https://placehold.co/100x100/8b5cf6/ffffff?text=Pavel',
+                balance: 1500,
+                inventory: [
+                    { id: 1, name: 'Golden Crown', icon: '👑', rarity: 'Legendary', date: '2026-03-01' },
+                    { id: 2, name: 'Diamond Ring', icon: '💍', rarity: 'Legendary', date: '2026-03-02' }
+                ]
+            },
+            {
+                id: 'usr_2',
+                name: '@crypto_king',
+                role: 'Player',
+                avatar: 'https://placehold.co/100x100/10b981/ffffff?text=CK',
+                balance: 320,
+                inventory: [
+                    { id: 3, name: 'Blue Star', icon: '⭐', rarity: 'Rare', date: '2026-03-04' }
+                ]
+            },
+            {
+                id: 'usr_3',
+                name: '@ton_master',
+                role: 'Player',
+                avatar: 'https://placehold.co/100x100/06b9d4/ffffff?text=TM',
+                balance: 50,
+                inventory: [
+                    { id: 4, name: 'Spiced Wine', icon: '🍷', rarity: 'Common', date: '2026-03-05' }
+                ]
+            }
+        ];
 
-        // Upgrader state
-        let upgraderMode = 'ton'; // 'ton' or 'nft'
-        let upgraderMultiplier = 2.0;
-        let upgraderSelectedNftId = null;
+        let playersDB = [];
+        let currentUserId = 'usr_me'; // Logged-in user
+        let selectedAdminUserId = 'usr_me'; // Admin targeting player
+        let isSpinning = false;
 
-        // Load saved state
-        function loadGame() {
-            const saved = localStorage.getItem('ton_crypto_app_state');
+        // --- 2. INIT APP & LOCALSTORAGE ---
+        window.onload = function() {
+            loadDatabase();
+            updateUI();
+            drawWheel();
+        };
+
+        function loadDatabase() {
+            const saved = localStorage.getItem('tg_app_players_db');
             if (saved) {
                 try {
-                    const parsed = JSON.parse(saved);
-                    gameState = { ...gameState, ...parsed };
-                } catch(e) { console.error(e); }
+                    playersDB = JSON.parse(saved);
+                } catch(e) {
+                    playersDB = DEFAULT_PLAYERS;
+                }
+            } else {
+                playersDB = DEFAULT_PLAYERS;
+                saveDatabase();
             }
-            calculatePassiveIncome();
-            renderAll();
         }
 
-        function saveGame() {
-            localStorage.setItem('ton_crypto_app_state', JSON.stringify(gameState));
+        function saveDatabase() {
+            localStorage.setItem('tg_app_players_db', JSON.stringify(playersDB));
         }
 
-        // Show Toast Notification
-        function showToast(msg, type = 'success') {
-            const toast = document.getElementById('toast');
-            const msgEl = document.getElementById('toast-msg');
-            const iconEl = document.getElementById('toast-icon');
-            
-            msgEl.textContent = msg;
-            iconEl.className = type === 'success' ? 'fa-solid fa-circle-check text-emerald-400' : 'fa-solid fa-circle-exclamation text-rose-400';
-            
-            toast.classList.remove('opacity-0', 'translate-y-[-20px]', 'pointer-events-none');
-            toast.classList.add('opacity-100', 'translate-y-0');
-            
-            setTimeout(() => {
-                toast.classList.remove('opacity-100', 'translate-y-0');
-                toast.classList.add('opacity-0', 'translate-y-[-20px]', 'pointer-events-none');
-            }, 2500);
+        function getCurrentUser() {
+            return playersDB.find(p => p.id === currentUserId) || playersDB[0];
         }
 
-        // Tab Navigation
-        function switchTab(tabId) {
-            gameState.activeTab = tabId;
+        function getSelectedAdminUser() {
+            return playersDB.find(p => p.id === selectedAdminUserId) || getCurrentUser();
+        }
+
+        // --- 3. UI RENDER FUNCTIONS ---
+        function updateUI() {
+            const user = getCurrentUser();
+
+            // Header update
+            document.getElementById('userName').innerHTML = `${user.name} <i class="fa-solid fa-circle-check text-sky-400 text-xs"></i>`;
+            document.getElementById('userRole').innerText = user.role || 'Player';
+            document.getElementById('userAvatar').src = user.avatar;
+            document.getElementById('userBalance').innerText = user.balance.toLocaleString();
+
+            // Render Tab Specifics
+            renderInventory();
+            renderAdminPanel();
+        }
+
+        function switchTab(tabName) {
+            // Hide all tabs
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
             
+            // Reset nav button colors
             document.querySelectorAll('.nav-btn').forEach(btn => {
-                if (btn.dataset.tab === tabId) {
-                    btn.classList.remove('text-slate-400');
-                    btn.classList.add('text-ton');
-                } else {
-                    btn.classList.remove('text-ton');
-                    btn.classList.add('text-slate-400');
-                }
+                btn.classList.remove('text-sky-400');
+                btn.classList.add('text-slate-400');
             });
-            renderAll();
+
+            // Show selected tab & highlight nav
+            document.getElementById(`tab-${tabName}`).classList.remove('hidden');
+            const activeNav = document.getElementById(`nav-${tabName}`);
+            activeNav.classList.remove('text-slate-400');
+            activeNav.classList.add('text-sky-400');
+
+            if (tabName === 'inventory') renderInventory();
+            if (tabName === 'admin') renderAdminPanel();
         }
 
-        // Clicker logic
-        function tapCoin(event) {
-            gameState.tonBalance += gameState.clickPower;
-            addXp(1);
+        function showToast(message, icon = 'fa-circle-info', colorClass = 'text-sky-400') {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMessage').innerText = message;
+            document.getElementById('toastIcon').className = `${colorClass} text-xl`;
+            document.getElementById('toastIcon').innerHTML = `<i class="fa-solid ${icon}"></i>`;
 
-            // Floating tap text
-            const rect = event.currentTarget.getBoundingClientRect();
-            const x = event.clientX - rect.left;
-            const y = event.clientY - rect.top;
-            
-            const floatEl = document.createElement('div');
-            floatEl.className = 'floating-text text-ton text-sm';
-            floatEl.textContent = `+${gameState.clickPower.toFixed(2)}`;
-            floatEl.style.left = `${x}px`;
-            floatEl.style.top = `${y}px`;
-            event.currentTarget.appendChild(floatEl);
-            
-            setTimeout(() => floatEl.remove(), 800);
-            updateHeader();
+            toast.classList.remove('opacity-0', '-translate-y-4', 'pointer-events-none');
+            toast.classList.add('opacity-100', 'translate-y-0');
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0', '-translate-y-4', 'pointer-events-none');
+                toast.classList.remove('opacity-100', 'translate-y-0');
+            }, 3000);
         }
 
-        function addXp(amount) {
-            gameState.xp += amount;
-            const xpNeeded = gameState.level * 100;
-            if (gameState.xp >= xpNeeded) {
-                gameState.xp -= xpNeeded;
-                gameState.level++;
-                gameState.clickPower += 0.05;
-                showToast(`Поздравляем! Уровень ${gameState.level} достигнут!`);
+        // --- 4. WHEEL CANVAS & LOGIC ---
+        let currentAngle = 0;
+
+        function drawWheel() {
+            const canvas = document.getElementById('wheelCanvas');
+            if (!canvas.getContext) return;
+            const ctx = canvas.getContext('2d');
+            const numSlices = WHEEL_ITEMS.length;
+            const sliceAngle = (2 * Math.PI) / numSlices;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            for (let i = 0; i < numSlices; i++) {
+                const angle = currentAngle + i * sliceAngle;
+                
+                // Draw slice background
+                ctx.beginPath();
+                ctx.moveTo(150, 150);
+                ctx.arc(150, 150, 145, angle, angle + sliceAngle);
+                ctx.closePath();
+
+                // Alternating gradients
+                const item = WHEEL_ITEMS[i];
+                const gradient = ctx.createRadialGradient(150, 150, 20, 150, 150, 145);
+                gradient.addColorStop(0, '#1e293b');
+                gradient.addColorStop(1, item.color);
+                ctx.fillStyle = gradient;
+                ctx.fill();
+                ctx.strokeStyle = '#0f172a';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+
+                // Draw Text / Emoji Icon
+                ctx.save();
+                ctx.translate(150, 150);
+                ctx.rotate(angle + sliceAngle / 2);
+                ctx.textAlign = 'right';
+                ctx.fillStyle = '#ffffff';
+                ctx.font = '22px Inter, sans-serif';
+                ctx.fillText(item.icon, 125, 8);
+                ctx.font = 'bold 10px Inter, sans-serif';
+                ctx.fillText(item.name, 95, 5);
+                ctx.restore();
             }
-            renderXpBar();
+
+            // Center Pin Circle
+            ctx.beginPath();
+            ctx.arc(150, 150, 28, 0, 2 * Math.PI);
+            ctx.fillStyle = '#0f172a';
+            ctx.fill();
+            ctx.strokeStyle = '#38bdf8';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+
+            // Center Icon
+            ctx.fillStyle = '#38bdf8';
+            ctx.font = '14px FontAwesome';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('⚡', 150, 150);
         }
 
-        function calculatePassiveIncome() {
-            let total = 0;
-            total += gameState.upgrades.autoMiner.level * gameState.upgrades.autoMiner.power;
-            total += gameState.upgrades.gpuRig.level * gameState.upgrades.gpuRig.power;
-            total += gameState.upgrades.farmNode.level * gameState.upgrades.farmNode.power;
-            gameState.passiveIncome = total;
-        }
+        function spinWheel() {
+            if (isSpinning) return;
+            const user = getCurrentUser();
 
-        function buyUpgrade(key) {
-            const upg = gameState.upgrades[key];
-            if (gameState.tonBalance >= upg.cost) {
-                gameState.tonBalance -= upg.cost;
-                upg.level++;
-                upg.cost = parseFloat((upg.cost * upg.mult).toFixed(2));
-                calculatePassiveIncome();
-                showToast(`Куплено улучшение!`);
-                renderAll();
-                saveGame();
-            } else {
-                showToast(`Недостаточно TON!`, 'error');
-            }
-        }
-
-        // Game Loop (Passive income & autosave)
-        setInterval(() => {
-            if (gameState.passiveIncome > 0) {
-                gameState.tonBalance += gameState.passiveIncome / 10;
-                updateHeader();
-            }
-        }, 100);
-
-        setInterval(() => {
-            saveGame();
-        }, 10000);
-
-        // Rendering Functions
-        function renderAll() {
-            updateHeader();
-            renderXpBar();
-            renderUpgrades();
-            renderCases();
-            renderInventory();
-            renderCraft();
-            renderUpgrader();
-        }
-
-        function updateHeader() {
-            document.getElementById('header-ton').textContent = gameState.tonBalance.toFixed(2);
-            document.getElementById('header-level').textContent = gameState.level;
-            document.getElementById('header-passive').textContent = `+${gameState.passiveIncome.toFixed(2)} TON/сек`;
-            document.getElementById('click-power-val').textContent = gameState.clickPower.toFixed(2);
-            document.getElementById('wallet-modal-balance').textContent = `${gameState.tonBalance.toFixed(2)} TON`;
-            
-            let invVal = gameState.inventory.reduce((acc, item) => acc + item.value, 0);
-            document.getElementById('wallet-modal-inv-value').textContent = `${invVal.toFixed(2)} TON`;
-        }
-
-        function renderXpBar() {
-            const xpNeeded = gameState.level * 100;
-            const pct = Math.min(100, (gameState.xp / xpNeeded) * 100);
-            document.getElementById('xp-text').textContent = `${gameState.xp} / ${xpNeeded} XP`;
-            document.getElementById('xp-bar').style.width = `${pct}%`;
-        }
-
-        function renderUpgrades() {
-            const container = document.getElementById('upgrades-list');
-            const data = [
-                { key: 'autoMiner', name: 'Авто-Майнер', desc: '+0.05 TON/сек', icon: 'fa-microchip', upg: gameState.upgrades.autoMiner },
-                { key: 'gpuRig', name: 'GPU Ферма', desc: '+0.35 TON/сек', icon: 'fa-server', upg: gameState.upgrades.gpuRig },
-                { key: 'farmNode', name: 'Квантовая Нода', desc: '+1.80 TON/сек', icon: 'fa-network-wired', upg: gameState.upgrades.farmNode }
-            ];
-
-            container.innerHTML = data.map(item => `
-                <div class="bg-cardBg border border-slate-800 p-3 rounded-xl flex items-center justify-between">
-                    <div class="flex items-center space-x-3">
-                        <div class="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center text-ton">
-                            <i class="fa-solid ${item.icon} text-base"></i>
-                        </div>
-                        <div>
-                            <h4 class="text-xs font-bold text-white">${item.name} <span class="text-[10px] text-slate-500 font-normal">(Ур. ${item.upg.level})</span></h4>
-                            <p class="text-[10px] text-emerald-400 font-medium">${item.desc}</p>
-                        </div>
-                    </div>
-                    <button onclick="buyUpgrade('${item.key}')" class="bg-ton hover:bg-tonDark text-white px-3 py-1.5 rounded-lg text-xs font-bold transition shadow-md shadow-ton/20">
-                        ${item.upg.cost.toFixed(1)} TON
-                    </button>
-                </div>
-            `).join('');
-        }
-
-        function renderCases() {
-            const container = document.getElementById('cases-container');
-            container.innerHTML = casesConfig.map(c => `
-                <div class="bg-cardBg border ${c.border} p-4 rounded-2xl flex items-center justify-between relative overflow-hidden">
-                    <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-gradient-to-tr ${c.color} rounded-full opacity-20 blur-xl"></div>
-                    <div class="flex items-center space-x-3 relative z-10">
-                        <div class="w-12 h-12 rounded-xl bg-gradient-to-tr ${c.color} flex items-center justify-center text-white text-xl shadow-lg">
-                            <i class="fa-solid ${c.icon}"></i>
-                        </div>
-                        <div>
-                            <h4 class="text-sm font-bold text-white">${c.name}</h4>
-                            <p class="text-[10px] text-slate-400">Шанс на Legendary: ${(c.rates.Legendary*100).toFixed(0)}%</p>
-                        </div>
-                    </div>
-                    <button onclick="openCase('${c.id}')" class="relative z-10 bg-gradient-to-r from-ton to-sky-500 hover:brightness-110 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-lg shadow-ton/30 transition">
-                        Открыть (${c.price} TON)
-                    </button>
-                </div>
-            `).join('');
-        }
-
-        // Case Opening Logic
-        let openingCaseData = null;
-        function openCase(caseId) {
-            const c = casesConfig.find(x => x.id === caseId);
-            if (gameState.tonBalance < c.price) {
-                showToast('Недостаточно TON!', 'error');
+            if (user.balance < 50) {
+                showToast('Недостаточно ICE баланса! Нужно 50 ICE.', 'fa-triangle-exclamation', 'text-amber-400');
                 return;
             }
-            gameState.tonBalance -= c.price;
-            updateHeader();
 
-            // Determine won NFT
-            const rand = Math.random();
-            let accum = 0;
-            let selectedRarity = 'Common';
-            for (const [rarity, rate] of Object.entries(c.rates)) {
-                accum += rate;
-                if (rand <= accum) {
-                    selectedRarity = rarity;
-                    break;
-                }
-            }
-            const pool = nftPool[selectedRarity];
-            const wonNftTemplate = pool[Math.floor(Math.random() * pool.length)];
-            const wonNft = {
-                id: 'nft_' + Date.now() + Math.random().toString(36).substring(2, 5),
-                rarity: selectedRarity,
-                ...wonNftTemplate
-            };
-            openingCaseData = wonNft;
+            // Deduct cost
+            user.balance -= 50;
+            saveDatabase();
+            updateUI();
 
-            // Show modal and run roulette
-            const modal = document.getElementById('case-modal');
-            modal.classList.remove('hidden');
-            document.getElementById('case-modal-title').textContent = `Открытие: ${c.name}`;
-            document.getElementById('case-result-info').classList.add('hidden');
-            document.getElementById('case-close-btn').classList.add('hidden');
+            isSpinning = true;
+            document.getElementById('spinBtn').disabled = true;
+            document.getElementById('spinBtn').classList.add('opacity-50');
 
-            const strip = document.getElementById('case-items-strip');
-            let stripHtml = '';
-            // Generate items strip
-            const allItems = [...nftPool.Common, ...nftPool.Rare, ...nftPool.Epic, ...nftPool.Legendary];
-            const fakeItems = [];
-            for(let i=0; i<20; i++) {
-                fakeItems.push(allItems[Math.floor(Math.random() * allItems.length)]);
-            }
-            fakeItems[15] = wonNft; // winning item position
+            const randomIndex = Math.floor(Math.random() * WHEEL_ITEMS.length);
+            const sliceAngle = (2 * Math.PI) / WHEEL_ITEMS.length;
+            
+            // Calculate target angle to stop at top pointer (-90 deg offset)
+            const extraRounds = 5 + Math.floor(Math.random() * 3);
+            const targetSliceCenter = randomIndex * sliceAngle + sliceAngle / 2;
+            const finalAngle = extraRounds * 2 * Math.PI + (1.5 * Math.PI - targetSliceCenter);
 
-            stripHtml = fakeItems.map(item => `
-                <div class="w-24 h-28 shrink-0 rounded-xl border flex flex-col items-center justify-center p-2 bg-slate-900 rarity-${item.rarity ? item.rarity.toLowerCase() : 'common'}">
-                    <i class="fa-solid ${item.icon} text-2xl mb-1" style="color: ${item.color}"></i>
-                    <span class="text-[10px] font-bold text-white text-center truncate w-full">${item.name}</span>
-                    <span class="text-[9px] text-slate-400">${item.value} TON</span>
-                </div>
-            `).join('');
-            strip.innerHTML = stripHtml;
-            strip.style.transition = 'none';
-            strip.style.left = '0px';
+            const duration = 4000;
+            const startAngle = currentAngle % (2 * Math.PI);
+            const angleChange = finalAngle - startAngle;
+            let startTime = null;
 
-            setTimeout(() => {
-                strip.style.transition = 'left 3s cubic-bezier(0.15, 0.85, 0.35, 1)';
-                // target position to center item index 15 (15 * 100px width approx - offset)
-                const offset = -(15 * 100 - 100);
-                strip.style.left = `${offset}px`;
-            }, 50);
-
-            setTimeout(() => {
-                // Show result
-                document.getElementById('case-result-info').classList.remove('hidden');
-                document.getElementById('case-close-btn').classList.remove('hidden');
-                const badge = document.getElementById('case-won-badge');
-                badge.textContent = wonNft.rarity.toUpperCase();
-                badge.className = `inline-block px-3 py-1 rounded-full text-xs font-bold mb-2 rarity-${wonNft.rarity.toLowerCase()}`;
-                document.getElementById('case-won-name').textContent = wonNft.name;
-                document.getElementById('case-won-value').textContent = `Ценность: ${wonNft.value} TON`;
+            function animateSpin(timestamp) {
+                if (!startTime) startTime = timestamp;
+                const progress = Math.min((timestamp - startTime) / duration, 1);
                 
-                gameState.inventory.push(wonNft);
-                saveGame();
-                renderAll();
-            }, 3200);
-        }
+                // Ease-out cubic animation formula
+                const easeOut = 1 - Math.pow(1 - progress, 3);
+                currentAngle = startAngle + angleChange * easeOut;
+                
+                drawWheel();
 
-        function closeCaseModal() {
-            document.getElementById('case-modal').classList.add('hidden');
-        }
-
-        // Inventory Management
-        let currentInvFilter = 'all';
-        function filterInventory(filter) {
-            currentInvFilter = filter;
-            document.querySelectorAll('.inv-filter-btn').forEach(btn => {
-                if (btn.textContent.toLowerCase() === filter.toLowerCase() || (filter === 'all' && btn.textContent === 'Все')) {
-                    btn.className = 'inv-filter-btn px-3 py-1.5 rounded-lg bg-ton text-white font-medium transition whitespace-nowrap';
+                if (progress < 1) {
+                    requestAnimationFrame(animateSpin);
                 } else {
-                    btn.className = 'inv-filter-btn px-3 py-1.5 rounded-lg bg-slate-800 text-slate-400 hover:text-white transition whitespace-nowrap';
+                    isSpinning = false;
+                    document.getElementById('spinBtn').disabled = false;
+                    document.getElementById('spinBtn').classList.remove('opacity-50');
+
+                    // Win logic
+                    const wonItem = WHEEL_ITEMS[randomIndex];
+                    user.inventory.push({
+                        id: Date.now(),
+                        name: wonItem.name,
+                        icon: wonItem.icon,
+                        rarity: wonItem.rarity,
+                        date: new Date().toISOString().split('T')[0]
+                    });
+                    saveDatabase();
+                    updateUI();
+
+                    // Update Wheel Last Drop Info
+                    document.getElementById('lastDropIcon').innerText = wonItem.icon;
+                    document.getElementById('lastDropName').innerText = wonItem.name;
+                    document.getElementById('lastDropRarity').innerText = `Редкость: ${wonItem.rarity}`;
+
+                    // Confetti Effect
+                    confetti({
+                        particleCount: 80,
+                        spread: 60,
+                        origin: { y: 0.6 }
+                    });
+
+                    showToast(`Вы выиграли ${wonItem.name} ${wonItem.icon}!`, 'fa-gift', 'text-emerald-400');
                 }
-            });
-            renderInventory();
+            }
+
+            requestAnimationFrame(animateSpin);
         }
 
+        // --- 5. INVENTORY LOGIC ---
         function renderInventory() {
-            const grid = document.getElementById('inventory-grid');
-            document.getElementById('inventory-count').textContent = gameState.inventory.length;
+            const user = getCurrentUser();
+            const grid = document.getElementById('inventoryGrid');
+            document.getElementById('inventoryCount').innerText = `${user.inventory.length} шт`;
 
-            let filtered = gameState.inventory;
-            if (currentInvFilter !== 'all') {
-                filtered = gameState.inventory.filter(i => i.rarity === currentInvFilter);
-            }
-
-            if (filtered.length === 0) {
-                grid.innerHTML = `<div class="col-span-2 text-center py-8 text-xs text-slate-500">Инвентарь пуст</div>`;
+            if (user.inventory.length === 0) {
+                grid.innerHTML = `
+                    <div class="col-span-2 text-center py-10 text-slate-500 space-y-2">
+                        <i class="fa-solid fa-box-open text-3xl opacity-40"></i>
+                        <p class="text-xs">Ваш инвентарь пуст. Вращайте колесо!</p>
+                    </div>
+                `;
                 return;
             }
 
-            grid.innerHTML = filtered.map(item => `
-                <div class="bg-cardBg border rarity-${item.rarity.toLowerCase()} p-3 rounded-2xl flex flex-col justify-between relative group">
-                    <div>
-                        <div class="flex justify-between items-start mb-2">
-                            <span class="text-[9px] px-2 py-0.5 rounded font-bold uppercase rarity-${item.rarity.toLowerCase()}">${item.rarity}</span>
-                            <span class="text-xs font-bold text-emerald-400">${item.value} TON</span>
+            grid.innerHTML = user.inventory.map(item => {
+                let badgeColor = 'bg-slate-700 text-slate-300';
+                if (item.rarity === 'Rare') badgeColor = 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30';
+                if (item.rarity === 'Legendary') badgeColor = 'bg-amber-500/20 text-amber-300 border border-amber-500/30 glow-ice';
+
+                const isUrl = item.icon.startsWith('http');
+                const renderIcon = isUrl 
+                    ? `<img src="${item.icon}" class="w-12 h-12 object-contain" alt="Gift">`
+                    : `<span class="text-4xl">${item.icon}</span>`;
+
+                return `
+                    <div class="glass-panel p-3 rounded-xl border border-slate-800 flex flex-col items-center justify-between relative group hover:border-sky-500/40 transition">
+                        <span class="absolute top-2 right-2 text-[9px] font-bold px-2 py-0.5 rounded-full ${badgeColor}">
+                            ${item.rarity}
+                        </span>
+                        <div class="my-3">
+                            ${renderIcon}
                         </div>
-                        <div class="text-center my-3">
-                            <i class="fa-solid ${item.icon} text-3xl mb-1 drop-shadow" style="color: ${item.color}"></i>
-                            <h4 class="text-xs font-bold text-white truncate">${item.name}</h4>
+                        <div class="text-center w-full">
+                            <h4 class="font-bold text-xs text-slate-200 truncate">${item.name}</h4>
+                            <p class="text-[9px] text-slate-500 mt-0.5">${item.date || 'NFT Telegram'}</p>
                         </div>
                     </div>
-                    <button onclick="sellNft('${item.id}')" class="w-full bg-slate-800 hover:bg-rose-500/20 hover:text-rose-400 text-slate-300 py-1.5 rounded-xl text-xs font-medium transition border border-slate-700">
-                        Продать
-                    </button>
-                </div>
-            `).join('');
+                `;
+            }).join('');
         }
 
-        function sellNft(id) {
-            const idx = gameState.inventory.findIndex(i => i.id === id);
-            if (idx !== -1) {
-                const item = gameState.inventory[idx];
-                gameState.tonBalance += item.value;
-                gameState.inventory.splice(idx, 1);
-                showToast(`NFT продана за ${item.value} TON`);
-                saveGame();
-                renderAll();
-            }
+        // --- 6. WITHDRAW LOGIC ---
+        function setMaxWithdraw() {
+            const user = getCurrentUser();
+            document.getElementById('withdrawAmount').value = user.balance;
         }
 
-        // Crafting logic
-        function openCraftSelector(slotIdx) {
-            currentCraftSlotIndex = slotIdx;
-            const modal = document.getElementById('craft-select-modal');
-            modal.classList.remove('hidden');
+        function processWithdraw() {
+            const user = getCurrentUser();
+            const wallet = document.getElementById('withdrawWallet').value.trim();
+            const amount = parseFloat(document.getElementById('withdrawAmount').value);
 
-            // Determine allowed rarity based on other slots
-            let allowedRarity = null;
-            for(let i=0; i<3; i++) {
-                if(i !== slotIdx && craftSlots[i]) {
-                    allowedRarity = craftSlots[i].rarity;
-                    break;
-                }
-            }
-
-            document.getElementById('craft-target-rarity').textContent = allowedRarity ? allowedRarity : 'Любая';
-
-            const list = document.getElementById('craft-selector-list');
-            const available = gameState.inventory.filter(i => {
-                // exclude already slotted
-                if (craftSlots.some(s => s && s.id === i.id)) return false;
-                if (allowedRarity && i.rarity !== allowedRarity) return false;
-                // Legendary cannot be crafted higher
-                if (i.rarity === 'Legendary') return false;
-                return true;
-            });
-
-            if (available.length === 0) {
-                list.innerHTML = `<div class="text-center py-6 text-xs text-slate-500">Нет подходящих NFT в инвентаре</div>`;
+            if (!wallet) {
+                showToast('Укажите адрес TON Кошелька!', 'fa-exclamation', 'text-rose-400');
                 return;
             }
 
-            list.innerHTML = available.map(item => `
-                <div onclick="selectNftForCraft('${item.id}')" class="bg-slate-900 border rarity-${item.rarity.toLowerCase()} p-2.5 rounded-xl flex items-center justify-between cursor-pointer hover:bg-slate-800 transition">
-                    <div class="flex items-center space-x-3">
-                        <i class="fa-solid ${item.icon} text-xl" style="color: ${item.color}"></i>
-                        <div>
-                            <h4 class="text-xs font-bold text-white">${item.name}</h4>
-                            <span class="text-[10px] text-slate-400">${item.rarity} • ${item.value} TON</span>
-                        </div>
-                    </div>
-                    <i class="fa-solid fa-plus text-xs text-ton"></i>
-                </div>
-            `).join('');
-        }
-
-        function closeCraftSelector() {
-            document.getElementById('craft-select-modal').classList.add('hidden');
-        }
-
-        function selectNftForCraft(id) {
-            const item = gameState.inventory.find(i => i.id === id);
-            if (item && currentCraftSlotIndex !== null) {
-                craftSlots[currentCraftSlotIndex] = item;
-                closeCraftSelector();
-                renderCraft();
-            }
-        }
-
-        function renderCraft() {
-            let filledCount = 0;
-            for(let i=0; i<3; i++) {
-                const slotEl = document.getElementById(`craft-slot-${i}`);
-                const item = craftSlots[i];
-                if (item) {
-                    filledCount++;
-                    slotEl.className = `w-20 h-20 rounded-xl border-2 border-solid rarity-${item.rarity.toLowerCase()} flex flex-col items-center justify-center cursor-pointer relative bg-slate-900`;
-                    slotEl.innerHTML = `
-                        <button onclick="event.stopPropagation(); removeCraftSlot(${i})" class="absolute -top-1.5 -right-1.5 w-5 h-5 bg-rose-500 text-white rounded-full text-[10px] flex items-center justify-center">×</button>
-                        <i class="fa-solid ${item.icon} text-xl mb-1" style="color: ${item.color}"></i>
-                        <span class="text-[9px] text-white truncate w-16 text-center">${item.name}</span>
-                    `;
-                } else {
-                    slotEl.className = `w-20 h-20 rounded-xl border-2 border-dashed border-slate-700 flex flex-col items-center justify-center cursor-pointer hover:border-ton transition bg-slate-900/50`;
-                    slotEl.innerHTML = `
-                        <i class="fa-solid fa-plus text-slate-500 text-xl mb-1"></i>
-                        <span class="text-[10px] text-slate-500">Слот ${i+1}</span>
-                    `;
-                }
-            }
-
-            const btn = document.getElementById('craft-btn');
-            const statusText = document.getElementById('craft-status-text');
-
-            if (filledCount === 3) {
-                // Check if all same rarity
-                const r = craftSlots[0].rarity;
-                if (craftSlots[1].rarity === r && craftSlots[2].rarity === r) {
-                    btn.disabled = false;
-                    btn.className = 'w-full py-3 rounded-xl bg-gradient-to-r from-ton to-sky-500 text-white font-bold shadow-lg shadow-ton/30 hover:brightness-110 transition cursor-pointer';
-                    btn.textContent = 'Создать NFT';
-                    statusText.textContent = `Готово к крафту! Шанс 100% на следующий ранг`;
-                } else {
-                    btn.disabled = true;
-                    btn.className = 'w-full py-3 rounded-xl bg-slate-800 text-slate-500 font-bold transition cursor-not-allowed';
-                    btn.textContent = 'Создать NFT (3/3)';
-                    statusText.textContent = 'Все 3 NFT должны быть одной редкости!';
-                }
-            } else {
-                btn.disabled = true;
-                btn.className = 'w-full py-3 rounded-xl bg-slate-800 text-slate-500 font-bold transition cursor-not-allowed';
-                btn.textContent = `Создать NFT (${filledCount}/3)`;
-                statusText.textContent = 'Выберите 3 NFT одинаковой редкости';
-            }
-        }
-
-        function removeCraftSlot(idx) {
-            craftSlots[idx] = null;
-            renderCraft();
-        }
-
-        function executeCraft() {
-            const r = craftSlots[0].rarity;
-            let nextRarity = 'Rare';
-            if (r === 'Rare') nextRarity = 'Epic';
-            if (r === 'Epic') nextRarity = 'Legendary';
-
-            // Remove used NFTs from inventory
-            craftSlots.forEach(slotItem => {
-                gameState.inventory = gameState.inventory.filter(i => i.id !== slotItem.id);
-            });
-
-            // Generate rewarded NFT
-            const pool = nftPool[nextRarity];
-            const template = pool[Math.floor(Math.random() * pool.length)];
-            const newNft = {
-                id: 'nft_' + Date.now() + Math.random().toString(36).substring(2, 5),
-                rarity: nextRarity,
-                ...template
-            };
-
-            gameState.inventory.push(newNft);
-            craftSlots = [null, null, null];
-            showToast(`Успешный крафт! Получен ${nextRarity} NFT: ${newNft.name}`);
-            saveGame();
-            renderAll();
-        }
-
-        // Upgrader Logic
-        function setUpgraderMode(mode) {
-            upgraderMode = mode;
-            if (mode === 'ton') {
-                document.getElementById('upg-mode-ton').className = 'flex-1 py-1.5 text-xs font-semibold rounded-lg bg-ton text-white transition';
-                document.getElementById('upg-mode-nft').className = 'flex-1 py-1.5 text-xs font-semibold rounded-lg text-slate-400 transition';
-                document.getElementById('upg-ton-section').classList.remove('hidden');
-                document.getElementById('upg-nft-section').classList.add('hidden');
-            } else {
-                document.getElementById('upg-mode-nft').className = 'flex-1 py-1.5 text-xs font-semibold rounded-lg bg-ton text-white transition';
-                document.getElementById('upg-mode-ton').className = 'flex-1 py-1.5 text-xs font-semibold rounded-lg text-slate-400 transition';
-                document.getElementById('upg-nft-section').classList.remove('hidden');
-                document.getElementById('upg-ton-section').classList.add('hidden');
-            }
-            updateUpgraderChance();
-        }
-
-        function setUpgTon(val) {
-            document.getElementById('upg-ton-amount').value = val;
-        }
-
-        function setUpgMax() {
-            document.getElementById('upg-ton-amount').value = gameState.tonBalance.toFixed(2);
-        }
-
-        function setMultiplier(mult) {
-            upgraderMultiplier = mult;
-            document.querySelectorAll('.upg-mult-btn').forEach(btn => {
-                if (parseFloat(btn.dataset.mult) === mult) {
-                    btn.className = 'upg-mult-btn py-2 rounded-xl bg-ton border border-ton text-xs font-bold text-white transition shadow-lg shadow-ton/30';
-                } else {
-                    btn.className = 'upg-mult-btn py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs font-bold text-slate-300 hover:border-ton transition';
-                }
-            });
-            updateUpgraderChance();
-        }
-
-        function updateUpgraderChance() {
-            // formula chance = (1 / mult) * 97 (3% house edge)
-            let chance = (1 / upgraderMultiplier) * 97.0;
-            if (chance > 99) chance = 99;
-            document.getElementById('upg-chance-text').textContent = `Шанс: ${chance.toFixed(1)}%`;
-        }
-
-        function openUpgNftModal() {
-            const modal = document.getElementById('upg-nft-modal');
-            modal.classList.remove('hidden');
-            const list = document.getElementById('upg-nft-list');
-
-            if (gameState.inventory.length === 0) {
-                list.innerHTML = `<div class="text-center py-6 text-xs text-slate-500">Инвентарь пуст</div>`;
+            if (isNaN(amount) || amount <= 0) {
+                showToast('Введите корректную сумму!', 'fa-exclamation', 'text-rose-400');
                 return;
             }
 
-            list.innerHTML = gameState.inventory.map(item => `
-                <div onclick="selectUpgNft('${item.id}')" class="bg-slate-900 border rarity-${item.rarity.toLowerCase()} p-2.5 rounded-xl flex items-center justify-between cursor-pointer hover:bg-slate-800 transition">
-                    <div class="flex items-center space-x-3">
-                        <i class="fa-solid ${item.icon} text-xl" style="color: ${item.color}"></i>
-                        <div>
-                            <h4 class="text-xs font-bold text-white">${item.name}</h4>
-                            <span class="text-[10px] text-slate-400">${item.rarity} • ${item.value} TON</span>
+            if (amount > user.balance) {
+                showToast('Недостаточно ICE на балансе!', 'fa-triangle-exclamation', 'text-amber-400');
+                return;
+            }
+
+            user.balance -= amount;
+            saveDatabase();
+            updateUI();
+
+            document.getElementById('withdrawAmount').value = '';
+            showToast(`Заявка на вывод ${amount} ICE отправлена!`, 'fa-circle-check', 'text-emerald-400');
+        }
+
+        // --- 7. ADMIN PANEL LOGIC ---
+        function renderAdminPanel() {
+            const playersContainer = document.getElementById('adminPlayersList');
+            
+            playersContainer.innerHTML = playersDB.map(player => {
+                const isSelected = player.id === selectedAdminUserId;
+                return `
+                    <div onclick="selectAdminPlayer('${player.id}')" class="p-2.5 rounded-xl border flex items-center justify-between cursor-pointer transition ${isSelected ? 'bg-indigo-950/60 border-indigo-500 shadow-md' : 'bg-slate-900/60 border-slate-800 hover:border-slate-700'}">
+                        <div class="flex items-center space-x-2.5">
+                            <img src="${player.avatar}" class="w-7 h-7 rounded-full object-cover">
+                            <div>
+                                <div class="text-xs font-bold text-slate-200 flex items-center gap-1">
+                                    ${player.name}
+                                    ${player.role === 'ADMIN' ? '<span class="text-[8px] bg-red-500/20 text-red-400 px-1 rounded">ADMIN</span>' : ''}
+                                </div>
+                                <div class="text-[10px] text-slate-400">${player.inventory.length} подарков</div>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-xs font-bold text-sky-400">${player.balance} ICE</div>
                         </div>
                     </div>
-                    <span class="text-xs text-ton font-bold">Выбрать</span>
-                </div>
-            `).join('');
-        }
+                `;
+            }).join('');
 
-        function closeUpgNftModal() {
-            document.getElementById('upg-nft-modal').classList.add('hidden');
-        }
+            // Selected Player Details
+            const targetPlayer = getSelectedAdminUser();
+            document.getElementById('selectedPlayerName').innerText = targetPlayer.name;
+            document.getElementById('selectedPlayerBalance').innerText = `${targetPlayer.balance} ICE`;
 
-        function selectUpgNft(id) {
-            const item = gameState.inventory.find(i => i.id === id);
-            if (item) {
-                upgraderSelectedNftId = item;
-                document.getElementById('upg-selected-nft-text').textContent = `${item.name} (${item.value} TON)`;
-                document.getElementById('upg-selected-nft-text').className = 'text-xs text-white font-bold';
-                closeUpgNftModal();
-            }
-        }
-
-        function startUpgrader() {
-            let stakeValue = 0;
-            if (upgraderMode === 'ton') {
-                stakeValue = parseFloat(document.getElementById('upg-ton-amount').value);
-                if (isNaN(stakeValue) || stakeValue <= 0 || stakeValue > gameState.tonBalance) {
-                    showToast('Неверная сумма ставки!', 'error');
-                    return;
-                }
-                gameState.tonBalance -= stakeValue;
+            // Render Target Player Inventory
+            const invContainer = document.getElementById('adminPlayerInventory');
+            if (targetPlayer.inventory.length === 0) {
+                invContainer.innerHTML = `<div class="col-span-3 text-center text-slate-500 text-xs py-3">Инвентарь пуст</div>`;
             } else {
-                if (!upgraderSelectedNftId) {
-                    showToast('Выберите NFT для апгрейда!', 'error');
-                    return;
-                }
-                stakeValue = upgraderSelectedNftId.value;
-                gameState.inventory = gameState.inventory.filter(i => i.id !== upgraderSelectedNftId.id);
-                upgraderSelectedNftId = null;
-                document.getElementById('upg-selected-nft-text').textContent = 'Нажмите, чтобы выбрать NFT';
-                document.getElementById('upg-selected-nft-text').className = 'text-xs text-slate-400';
+                invContainer.innerHTML = targetPlayer.inventory.map(item => `
+                    <div class="bg-slate-950 p-1.5 rounded text-center border border-slate-800">
+                        <div class="text-lg">${item.icon.startsWith('http') ? '🖼️' : item.icon}</div>
+                        <div class="text-[9px] font-bold text-slate-300 truncate">${item.name}</div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        function selectAdminPlayer(id) {
+            selectedAdminUserId = id;
+            renderAdminPanel();
+        }
+
+        function adminModifyBalance(isAdd) {
+            const targetPlayer = getSelectedAdminUser();
+            const val = parseFloat(document.getElementById('adminBalanceInput').value);
+
+            if (isNaN(val) || val <= 0) {
+                showToast('Введите сумму!', 'fa-exclamation', 'text-amber-400');
+                return;
             }
 
-            updateHeader();
+            if (isAdd) {
+                targetPlayer.balance += val;
+                showToast(`Начислено ${val} ICE игроку ${targetPlayer.name}`, 'fa-plus', 'text-emerald-400');
+            } else {
+                targetPlayer.balance = Math.max(0, targetPlayer.balance - val);
+                showToast(`Списано ${val} ICE у игрока ${targetPlayer.name}`, 'fa-minus', 'text-rose-400');
+            }
 
-            const actionBtn = document.getElementById('upg-action-btn');
-            actionBtn.disabled = true;
-            actionBtn.className = 'w-full py-3 rounded-xl bg-slate-800 text-slate-500 font-bold cursor-not-allowed';
-
-            const visual = document.getElementById('upg-visual');
-            const progressBar = document.getElementById('upg-progress-bar');
-            visual.textContent = 'Раскрутка колеса...';
-            progressBar.style.width = '100%';
-            progressBar.style.transition = 'width 2s linear';
-
-            setTimeout(() => {
-                // Calculate win
-                let chance = (1 / upgraderMultiplier) * 97.0 / 100.0;
-                const roll = Math.random();
-                const isWin = roll <= chance;
-
-                if (isWin) {
-                    const winAmount = stakeValue * upgraderMultiplier;
-                    gameState.tonBalance += winAmount;
-                    visual.innerHTML = `<span class="text-emerald-400 font-bold text-base">ПОБЕДА! +${winAmount.toFixed(2)} TON</span>`;
-                    showToast(`Апгрейд успешен! Выиграно ${winAmount.toFixed(2)} TON`);
-                } else {
-                    visual.innerHTML = `<span class="text-rose-400 font-bold text-base">ПРОИГРЫШ! Ставка сгорела</span>`;
-                    showToast(`Увы, апгрейд не удался`, 'error');
-                }
-
-                progressBar.style.width = '0%';
-                progressBar.style.transition = 'none';
-                actionBtn.disabled = false;
-                actionBtn.className = 'w-full py-3 rounded-xl bg-gradient-to-r from-ton to-sky-500 text-white font-bold shadow-lg shadow-ton/30 hover:brightness-110 transition cursor-pointer';
-                
-                saveGame();
-                updateHeader();
-            }, 2000);
+            document.getElementById('adminBalanceInput').value = '';
+            saveDatabase();
+            updateUI();
         }
 
-        function renderUpgrader() {
-            updateUpgraderChance();
+        // --- 8. ADMIN MODAL LOGIC (ADD GIFT) ---
+        function openAddGiftModal() {
+            const targetPlayer = getSelectedAdminUser();
+            document.getElementById('addGiftModal').classList.remove('hidden');
         }
 
-        function closeModal(modalId) {
-            document.getElementById(modalId).classList.add('hidden');
+        function closeAddGiftModal() {
+            document.getElementById('addGiftModal').classList.add('hidden');
         }
 
-        // Initialize on load
-        window.onload = function() {
-            loadGame();
-        };
+        function applyGiftPreset(name, icon, rarity) {
+            document.getElementById('giftNameInput').value = name;
+            document.getElementById('giftIconInput').value = icon;
+            document.getElementById('giftRarityInput').value = rarity;
+        }
+
+        function adminConfirmAddGift() {
+            const targetPlayer = getSelectedAdminUser();
+            const name = document.getElementById('giftNameInput').value.trim();
+            const icon = document.getElementById('giftIconInput').value.trim();
+            const rarity = document.getElementById('giftRarityInput').value;
+
+            if (!name || !icon) {
+                showToast('Заполните название и иконку подарка!', 'fa-exclamation', 'text-amber-400');
+                return;
+            }
+
+            // Push to targeted user inventory
+            targetPlayer.inventory.push({
+                id: Date.now(),
+                name: name,
+                icon: icon,
+                rarity: rarity,
+                date: new Date().toISOString().split('T')[0]
+            });
+
+            saveDatabase();
+            updateUI();
+            closeAddGiftModal();
+
+            // Clear Inputs
+            document.getElementById('giftNameInput').value = '';
+            document.getElementById('giftIconInput').value = '';
+
+            showToast(`NFT Подарок "${name}" зачислен игроку ${targetPlayer.name}!`, 'fa-gift', 'text-emerald-400');
+        }
     </script>
 </body>
 </html>
