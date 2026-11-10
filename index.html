@@ -3,15 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Telegram NFT Upgrader</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>@yung_roxy — Cyberpunk Upgrader</title>
     <!-- Telegram WebApp SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <!-- FontAwesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
     <script>
         tailwind.config = {
             darkMode: 'class',
@@ -19,1300 +17,941 @@
                 extend: {
                     colors: {
                         brand: {
-                            50: '#f0f7ff',
-                            400: '#38bdf8',
-                            500: '#0088cc',
-                            600: '#0284c7',
-                            900: '#0c4a6e',
-                        },
-                        nft: {
-                            common: '#9ca3af',
-                            rare: '#3b82f6',
-                            epic: '#a855f7',
-                            legendary: '#eab308',
-                            mythic: '#ef4444'
+                            purple: '#9d4edd',
+                            neonPink: '#ff007f',
+                            neonBlue: '#00f0ff',
+                            neonGreen: '#00ff66',
+                            gold: '#ffd700',
+                            darkBg: '#0b0c10',
+                            cardBg: 'rgba(22, 27, 34, 0.75)',
+                            cardBorder: 'rgba(157, 78, 221, 0.3)'
                         }
                     },
+                    boxShadow: {
+                        'neon-purple': '0 0 20px rgba(157, 78, 221, 0.5)',
+                        'neon-blue': '0 0 20px rgba(0, 240, 255, 0.5)',
+                        'neon-pink': '0 0 20px rgba(255, 0, 127, 0.6)',
+                        'neon-green': '0 0 20px rgba(0, 255, 102, 0.6)',
+                        'gold-glow': '0 0 15px rgba(255, 215, 0, 0.5)'
+                    },
                     fontFamily: {
-                        sans: ['Outfit', 'sans-serif'],
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace']
                     }
                 }
             }
         }
     </script>
     <style>
-        body {
-            font-family: 'Outfit', sans-serif;
-            background-color: #0b0e14;
-            color: #f3f4f6;
-            touch-action: manipulation;
-            user-select: none;
-            -webkit-user-select: none;
-        }
+        /* CSS Animations & Glassmorphism */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&family=JetBrains+Mono:wght@700&display=swap');
 
-        .glass-panel {
-            background: rgba(18, 24, 38, 0.85);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
+        body {
+            background-color: #07080b;
+            color: #f1f5f9;
+            font-family: 'Inter', sans-serif;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 15% 15%, rgba(157, 78, 221, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 85% 85%, rgba(0, 240, 255, 0.12) 0%, transparent 40%);
         }
 
         .glass-card {
-            background: linear-gradient(145deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0.01) 100%);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            background: rgba(18, 22, 32, 0.7);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(157, 78, 221, 0.25);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
         }
 
-        .glass-card:active {
-            transform: scale(0.97);
+        .glass-card-interactive {
+            transition: all 0.2s ease-in-out;
+        }
+        .glass-card-interactive:active {
+            transform: scale(0.98);
         }
 
-        .glow-cyan {
-            box-shadow: 0 0 25px rgba(56, 189, 248, 0.3);
+        /* Custom Styling for Slider */
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: transparent;
         }
 
+        input[type=range]:focus {
+            outline: none;
+        }
+
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 10px;
+            cursor: pointer;
+            background: #1e293b;
+            border-radius: 999px;
+            border: 1px solid rgba(157, 78, 221, 0.3);
+        }
+
+        input[type=range]::-webkit-slider-thumb {
+            height: 24px;
+            width: 24px;
+            border-radius: 50%;
+            background: #00f0ff;
+            box-shadow: 0 0 15px #00f0ff;
+            cursor: pointer;
+            -webkit-appearance: none;
+            margin-top: -7px;
+            transition: transform 0.1s ease;
+        }
+
+        input[type=range]::-webkit-slider-thumb:hover {
+            transform: scale(1.15);
+        }
+
+        /* Neon Pulse Animation */
+        @keyframes neonPulse {
+            0%, 100% { filter: drop-shadow(0 0 8px rgba(157, 78, 221, 0.8)); }
+            50% { filter: drop-shadow(0 0 18px rgba(0, 240, 255, 0.9)); }
+        }
+
+        .neon-pulse-glow {
+            animation: neonPulse 3s infinite alternate;
+        }
+
+        /* Custom Scrollbar */
         ::-webkit-scrollbar {
             width: 4px;
-            height: 4px;
         }
         ::-webkit-scrollbar-track {
             background: rgba(15, 23, 42, 0.6);
         }
         ::-webkit-scrollbar-thumb {
-            background: rgba(56, 189, 248, 0.3);
-            border-radius: 999px;
-        }
-
-        .no-scrollbar::-webkit-scrollbar {
-            display: none;
-        }
-        .no-scrollbar {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-        }
-
-        #upgradeCanvas {
-            filter: drop-shadow(0 0 15px rgba(56, 189, 248, 0.25));
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-6px); }
-        }
-        .animate-float {
-            animation: float 4s infinite ease-in-out;
-        }
-
-        .nft-img-container {
-            width: 100%;
-            height: 90px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-            border-radius: 12px;
-            position: relative;
-        }
-        .nft-img-container img {
-            max-height: 100%;
-            max-width: 100%;
-            object-fit: contain;
-            filter: drop-shadow(0 4px 10px rgba(0,0,0,0.5));
+            background: rgba(157, 78, 221, 0.5);
+            border-radius: 4px;
         }
     </style>
 </head>
-<body class="bg-[#0b0e14] text-gray-100 flex flex-col h-screen overflow-hidden antialiased select-none">
+<body class="min-h-screen pb-20 select-none flex flex-col justify-between">
 
-    <!-- Header Navigation -->
-    <header class="glass-panel sticky top-0 z-40 px-4 py-3 flex items-center justify-between border-b border-white/5">
-        <div class="flex items-center space-x-3">
-            <div id="userAvatarContainer" class="relative">
-                <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-cyan-500 via-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm shadow-md ring-2 ring-cyan-500/30">
-                    <span id="userAvatarText">TG</span>
+    <!-- TOP HEADER -->
+    <header class="sticky top-0 z-40 w-full glass-card border-b border-brand-purple/20 px-4 py-3 shadow-lg">
+        <div class="max-w-md mx-auto flex items-center justify-between">
+            <!-- User Info & Avatar -->
+            <div class="flex items-center space-x-3">
+                <div class="relative">
+                    <img id="user-avatar" src="https://placehold.co/100x100/9d4edd/ffffff?text=ROXY" class="w-10 h-10 rounded-full border-2 border-brand-neonBlue shadow-neon-blue object-cover" alt="Avatar">
+                    <span class="absolute bottom-0 right-0 w-3 h-3 bg-brand-neonGreen rounded-full border-2 border-slate-900"></span>
                 </div>
-                <div class="absolute -bottom-1 -right-1 bg-green-500 w-3.5 h-3.5 rounded-full border-2 border-[#0b0e14]"></div>
+                <div>
+                    <div class="flex items-center gap-1.5">
+                        <span id="user-name" class="font-bold text-sm text-white tracking-wide">@yung_roxy</span>
+                        <span id="admin-badge" class="hidden text-[10px] bg-brand-purple/40 text-brand-neonPink border border-brand-neonPink/50 px-1.5 py-0.5 rounded font-mono uppercase font-semibold">ADMIN</span>
+                    </div>
+                    <div class="text-[11px] text-slate-400 flex items-center gap-1">
+                        <i data-lucide="zap" class="w-3 h-3 text-brand-gold"></i>
+                        <span id="haptic-status">Haptic: OK</span>
+                    </div>
+                </div>
             </div>
-            <div>
-                <div class="flex items-center gap-1.5">
-                    <span id="usernameDisplay" class="font-bold text-sm text-white tracking-wide">@user</span>
-                    <span id="adminBadge" class="hidden text-[10px] font-extrabold bg-gradient-to-r from-amber-500 to-red-500 text-black px-1.5 py-0.5 rounded shadow">ADMIN</span>
-                </div>
-                <div class="text-[11px] text-gray-400 flex items-center gap-1">
-                    <i class="fa-solid fa-shield-halved text-cyan-400 text-[10px]"></i> TG Verified
-                </div>
-            </div>
-        </div>
 
-        <!-- Balance Display -->
-        <div class="flex items-center bg-cyan-950/40 border border-cyan-500/30 px-3 py-1.5 rounded-full shadow-inner">
-            <div class="w-5 h-5 rounded-full bg-cyan-500/20 flex items-center justify-center mr-2 text-cyan-400 text-xs">
-                💎
+            <!-- Balance Widget & Quick Test Top-up -->
+            <div class="flex items-center space-x-2">
+                <div class="glass-card bg-slate-900/80 px-3 py-1.5 rounded-xl border border-brand-gold/30 flex items-center gap-2">
+                    <i data-lucide="coins" class="w-4 h-4 text-brand-gold animate-bounce"></i>
+                    <span id="user-balance" class="font-mono font-extrabold text-base text-brand-gold">1,000</span>
+                </div>
+                <button onclick="app.quickTopUp()" class="bg-brand-purple/30 hover:bg-brand-purple/50 border border-brand-purple text-brand-neonBlue p-2 rounded-xl active:scale-95 transition" title="+500 Монет">
+                    <i data-lucide="plus" class="w-4 h-4"></i>
+                </button>
             </div>
-            <div class="flex flex-col text-right">
-                <span class="text-[9px] uppercase tracking-wider text-cyan-300 font-semibold leading-tight">Баланс</span>
-                <span id="userBalance" class="font-extrabold text-sm text-cyan-300 leading-tight">10,000</span>
-            </div>
-            <button onclick="switchTab('market')" class="ml-2 text-cyan-400 hover:text-white text-xs bg-cyan-500/20 p-1 rounded-full transition-colors">
-                <i class="fa-solid fa-plus"></i>
-            </button>
         </div>
     </header>
 
-    <!-- Main Content Area -->
-    <main class="flex-1 overflow-y-auto relative no-scrollbar pb-24">
+    <!-- TEST MODE ROLE TOGGLE BANNER (For Demonstration/Admin Preview) -->
+    <div class="bg-slate-900/90 border-b border-slate-800 px-4 py-1.5 text-xs text-slate-300 flex items-center justify-between max-w-md mx-auto w-full">
+        <span class="flex items-center gap-1"><i data-lucide="shield-alert" class="w-3.5 h-3.5 text-brand-neonPink"></i> Демо режим ролей:</span>
+        <div class="flex gap-2">
+            <button id="role-user-btn" onclick="app.switchRole('user')" class="px-2 py-0.5 rounded text-[11px] bg-brand-purple text-white font-semibold">Игрок</button>
+            <button id="role-admin-btn" onclick="app.switchRole('admin')" class="px-2 py-0.5 rounded text-[11px] bg-slate-800 text-slate-400 hover:text-white">Админ @yung_roxy</button>
+        </div>
+    </div>
+
+    <!-- MAIN CONTAINER WITH TABS -->
+    <main class="max-w-md mx-auto w-full px-4 pt-3 flex-1">
         
-        <!-- ================= UPGRADER TAB ================= -->
-        <section id="tab-upgrader" class="p-4 flex flex-col items-center justify-between min-h-full">
+        <!-- MAINTENANCE BANNER (Hidden by default) -->
+        <div id="maintenance-banner" class="hidden glass-card border-red-500/50 bg-red-950/40 p-6 rounded-2xl text-center my-4 animate-pulse">
+            <i data-lucide="wrench" class="w-12 h-12 text-red-400 mx-auto mb-2"></i>
+            <h2 class="text-xl font-bold text-red-400 mb-1">Технические работы</h2>
+            <p class="text-xs text-slate-300">Апгрейдер временно недоступен. Администратор @yung_roxy проводит обновление системы.</p>
+        </div>
+
+        <!-- SECTION 1: UPGRADER GAME TAB -->
+        <section id="tab-game" class="space-y-4">
             
-            <!-- Upgrader Wheel Section -->
-            <div class="w-full max-w-sm flex flex-col items-center justify-center my-2 relative">
-                
-                <div class="relative w-64 h-64 md:w-72 md:h-72 flex items-center justify-center">
-                    <div id="wheelGlow" class="absolute inset-0 rounded-full bg-cyan-500/10 blur-xl transition-all duration-500"></div>
+            <!-- CANVAS VISUALIZER CARD -->
+            <div class="glass-card rounded-2xl p-4 relative overflow-hidden flex flex-col items-center justify-center">
+                <!-- Glowing Ambient Canvas BG -->
+                <div class="absolute inset-0 bg-gradient-to-b from-brand-purple/10 to-transparent pointer-events-none"></div>
 
-                    <!-- Canvas Wheel -->
-                    <canvas id="upgradeCanvas" width="300" height="300" class="w-full h-full z-10"></canvas>
-
-                    <!-- Top Pointer -->
-                    <div class="absolute top-0 z-20 -translate-y-1 text-cyan-400 drop-shadow-[0_0_8px_rgba(56,189,248,0.8)]">
-                        <i class="fa-solid fa-caret-down text-3xl"></i>
-                    </div>
-
-                    <!-- Center Stats -->
-                    <div class="absolute z-20 inset-0 flex flex-col items-center justify-center pointer-events-none text-center">
-                        <div id="chanceLabel" class="text-3xl font-black text-white tracking-tight drop-shadow-md">
-                            0.00%
-                        </div>
-                        <div id="multiplierLabel" class="text-xs font-semibold text-cyan-400 bg-cyan-950/80 px-2 py-0.5 rounded-full border border-cyan-500/30 mt-1">
-                            x0.00
-                        </div>
-                        <div id="upgradeStatusText" class="text-[11px] text-gray-400 mt-2 max-w-[140px] truncate">
-                            Выберите предметы
+                <!-- Canvas Visualizer Rotor -->
+                <div class="relative w-64 h-64 flex items-center justify-center">
+                    <canvas id="upgrader-canvas" width="250" height="250" class="w-full h-full"></canvas>
+                    
+                    <!-- Center Overlay Info -->
+                    <div class="absolute flex flex-col items-center justify-center pointer-events-none text-center">
+                        <span class="text-[11px] text-slate-400 tracking-wider uppercase font-semibold">Множитель</span>
+                        <span id="display-multiplier" class="text-3xl font-mono font-black text-brand-neonBlue neon-pulse-glow">2.00x</span>
+                        <div class="mt-1 flex items-center gap-1 text-[11px] bg-slate-900/80 px-2 py-0.5 rounded-full border border-slate-700">
+                            <span class="text-slate-400">Шанс:</span>
+                            <span id="display-chance" class="font-bold text-brand-neonGreen">47.5%</span>
                         </div>
                     </div>
                 </div>
 
-                <div class="mt-3 flex items-center justify-between w-full px-6 text-xs text-gray-400 font-mono">
-                    <span>ROLL: <span id="rollRangeText" class="text-white font-bold">0.00 - 0.00</span></span>
-                    <span>MAX: <span class="text-cyan-400 font-bold">95.00%</span></span>
+                <!-- Game Result Announcement Banner -->
+                <div id="result-message" class="h-8 mt-2 flex items-center justify-center font-bold text-sm tracking-wide transition-all opacity-0">
+                    <span class="px-4 py-1 rounded-full border bg-slate-900/90 text-slate-300">Сделайте ставку</span>
                 </div>
             </div>
 
-            <!-- Item Selector Slots -->
-            <div class="w-full max-w-md grid grid-cols-2 gap-3 my-3">
+            <!-- CONTROLS CARD -->
+            <div class="glass-card rounded-2xl p-4 space-y-4">
                 
-                <!-- SOURCE ITEM -->
-                <div onclick="openItemSelector('source')" class="glass-panel p-3 rounded-2xl flex flex-col items-center justify-between border border-white/10 hover:border-cyan-500/50 cursor-pointer relative min-h-[140px] group transition-all">
-                    <div class="w-full flex items-center justify-between text-[11px] text-gray-400 font-medium">
-                        <span>ВАШ ПРЕДМЕТ</span>
-                        <i class="fa-solid fa-repeat text-cyan-400 group-hover:rotate-180 transition-transform duration-300"></i>
+                <!-- MULTIPLIER & CHANCE SLIDER -->
+                <div class="space-y-2">
+                    <div class="flex justify-between text-xs font-semibold">
+                        <span class="text-slate-400">Целевой множитель</span>
+                        <span class="text-brand-neonBlue font-mono">1.10x — 100.00x</span>
                     </div>
 
-                    <div id="sourceItemContainer" class="flex flex-col items-center justify-center my-2 w-full">
-                        <div class="w-12 h-12 rounded-xl border border-dashed border-gray-600 flex items-center justify-center text-gray-500 mb-1">
-                            <i class="fa-solid fa-plus text-lg"></i>
-                        </div>
-                        <span class="text-xs text-gray-400 text-center">Из инвентаря</span>
-                    </div>
-
-                    <div id="sourceItemPrice" class="text-xs font-extrabold text-cyan-400 hidden">
-                        0 💎
+                    <input type="range" id="multiplier-slider" min="1.1" max="100" step="0.1" value="2.0">
+                    
+                    <div class="grid grid-cols-4 gap-1.5 pt-1">
+                        <button onclick="app.setMultiplier(1.2)" class="glass-card-interactive bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700 py-1 rounded-lg text-xs font-mono">1.2x</button>
+                        <button onclick="app.setMultiplier(2.0)" class="glass-card-interactive bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700 py-1 rounded-lg text-xs font-mono">2.0x</button>
+                        <button onclick="app.setMultiplier(5.0)" class="glass-card-interactive bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700 py-1 rounded-lg text-xs font-mono">5.0x</button>
+                        <button onclick="app.setMultiplier(10.0)" class="glass-card-interactive bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700 py-1 rounded-lg text-xs font-mono">10.0x</button>
                     </div>
                 </div>
 
-                <!-- TARGET ITEM -->
-                <div onclick="openItemSelector('target')" class="glass-panel p-3 rounded-2xl flex flex-col items-center justify-between border border-white/10 hover:border-purple-500/50 cursor-pointer relative min-h-[140px] group transition-all">
-                    <div class="w-full flex items-center justify-between text-[11px] text-gray-400 font-medium">
-                        <span>ЦЕЛЬ (NFT)</span>
-                        <i class="fa-solid fa-crosshairs text-purple-400 group-hover:scale-110 transition-transform"></i>
+                <!-- BET AMOUNT SELECTOR -->
+                <div class="space-y-2">
+                    <div class="flex justify-between text-xs font-semibold">
+                        <span class="text-slate-400">Сумма ставки</span>
+                        <span class="text-brand-gold font-mono">Возможный выигрыш: <span id="display-payout" class="text-white">100</span> 🪙</span>
+                    </div>
+                    
+                    <div class="relative">
+                        <input type="number" id="bet-input" value="50" min="10" max="10000" class="w-full bg-slate-900/90 border border-brand-purple/40 rounded-xl py-2.5 px-3 pr-12 font-mono font-bold text-lg text-white focus:outline-none focus:border-brand-neonBlue transition">
+                        <span class="absolute right-3 top-3 text-xs text-brand-gold font-bold">🪙</span>
                     </div>
 
-                    <div id="targetItemContainer" class="flex flex-col items-center justify-center my-2 w-full">
-                        <div class="w-12 h-12 rounded-xl border border-dashed border-gray-600 flex items-center justify-center text-gray-500 mb-1">
-                            <i class="fa-solid fa-bullseye text-lg"></i>
-                        </div>
-                        <span class="text-xs text-gray-400 text-center">Из каталога NFT</span>
-                    </div>
-
-                    <div id="targetItemPrice" class="text-xs font-extrabold text-purple-400 hidden">
-                        0 💎
+                    <!-- Quick Bet Buttons -->
+                    <div class="grid grid-cols-6 gap-1 text-xs font-mono font-semibold">
+                        <button onclick="app.adjustBet('min')" class="glass-card-interactive bg-slate-800/70 border border-slate-700 py-1.5 rounded-lg">MIN</button>
+                        <button onclick="app.adjustBet('+10')" class="glass-card-interactive bg-slate-800/70 border border-slate-700 py-1.5 rounded-lg">+10</button>
+                        <button onclick="app.adjustBet('+50')" class="glass-card-interactive bg-slate-800/70 border border-slate-700 py-1.5 rounded-lg">+50</button>
+                        <button onclick="app.adjustBet('half')" class="glass-card-interactive bg-slate-800/70 border border-slate-700 py-1.5 rounded-lg">/2</button>
+                        <button onclick="app.adjustBet('double')" class="glass-card-interactive bg-slate-800/70 border border-slate-700 py-1.5 rounded-lg">x2</button>
+                        <button onclick="app.adjustBet('max')" class="glass-card-interactive bg-slate-800/70 border border-slate-700 py-1.5 rounded-lg text-brand-gold">MAX</button>
                     </div>
                 </div>
 
-            </div>
-
-            <!-- Upgrade Control Action -->
-            <div class="w-full max-w-md space-y-3">
-                <div class="flex items-center justify-between bg-black/40 p-1.5 rounded-xl border border-white/5">
-                    <button id="btnRollUnder" onclick="setRollDirection('under')" class="flex-1 py-1.5 text-xs font-bold rounded-lg transition-all bg-cyan-500/20 text-cyan-300 border border-cyan-500/40">
-                        МЕНЬШЕ (<span id="rollUnderVal">0-50</span>)
-                    </button>
-                    <button id="btnRollOver" onclick="setRollDirection('over')" class="flex-1 py-1.5 text-xs font-bold rounded-lg transition-all text-gray-400 hover:text-white">
-                        БОЛЬШЕ (<span id="rollOverVal">50-100</span>)
-                    </button>
-                </div>
-
-                <button id="upgradeBtn" onclick="startUpgrade()" disabled class="w-full py-4 rounded-xl font-extrabold text-base uppercase tracking-wider transition-all duration-300 shadow-lg bg-gray-800 text-gray-500 cursor-not-allowed border border-white/5">
-                    УЛУЧШИТЬ
+                <!-- PLAY / UPGRADE BUTTON -->
+                <button id="upgrade-btn" onclick="app.playGame()" class="w-full py-4 rounded-xl font-extrabold text-lg tracking-wider text-white uppercase bg-gradient-to-r from-brand-purple via-brand-neonPink to-brand-neonBlue shadow-neon-purple hover:shadow-neon-pink active:scale-98 transition transform duration-150 flex items-center justify-center gap-2">
+                    <i data-lucide="zap" class="w-5 h-5 fill-current"></i>
+                    <span>АПГРЕЙД</span>
                 </button>
             </div>
-
         </section>
 
-        <!-- ================= INVENTORY TAB ================= -->
-        <section id="tab-inventory" class="p-4 hidden">
-            <div class="flex items-center justify-between mb-4">
-                <div>
-                    <h2 class="text-lg font-bold text-white">Мой Инвентарь</h2>
-                    <p class="text-xs text-gray-400">NFT Дошираки, Пепе и Telegram предметы</p>
-                </div>
-                <div class="text-xs bg-gray-800/80 px-2.5 py-1 rounded-lg border border-white/10 text-gray-300">
-                    Предметов: <span id="inventoryCount" class="font-bold text-cyan-400">0</span>
-                </div>
+        <!-- SECTION 2: HISTORY TAB -->
+        <section id="tab-history" class="hidden space-y-3">
+            <div class="flex justify-between items-center px-1">
+                <h3 class="font-bold text-sm text-slate-300 uppercase tracking-wider flex items-center gap-2">
+                    <i data-lucide="history" class="w-4 h-4 text-brand-neonBlue"></i> История последних игр
+                </h3>
+                <span class="text-xs text-slate-500">Только ваши попытки</span>
             </div>
 
-            <div id="inventoryGrid" class="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                <!-- Items populated dynamically -->
+            <div id="history-container" class="space-y-2">
+                <!-- History Items Rendered via JS -->
             </div>
         </section>
 
-        <!-- ================= MARKET TAB ================= -->
-        <section id="tab-market" class="p-4 hidden">
-            <div class="flex items-center justify-between mb-4">
-                <div>
-                    <h2 class="text-lg font-bold text-white">Маркет NFT & Подарков</h2>
-                    <p class="text-xs text-gray-400">Покупайте и пополняйте маркет предметами за 💎 ICES</p>
-                </div>
-                <div class="text-xs bg-cyan-950/60 px-2.5 py-1 rounded-lg border border-cyan-500/30 text-cyan-300 font-bold">
-                    Маркет
-                </div>
-            </div>
-
-            <!-- Market Filter Tabs -->
-            <div class="flex space-x-2 overflow-x-auto no-scrollbar mb-4 pb-1">
-                <button onclick="filterMarket('all')" class="market-filter-btn active bg-cyan-500 text-black px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap">Все</button>
-                <button onclick="filterMarket('doshirak')" class="market-filter-btn bg-gray-800 text-gray-300 px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap">🍜 Дошираки</button>
-                <button onclick="filterMarket('pepe')" class="market-filter-btn bg-gray-800 text-gray-300 px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap">🐸 Pepe & Мемы</button>
-                <button onclick="filterMarket('telegram')" class="market-filter-btn bg-gray-800 text-gray-300 px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap">📱 Telegram NFT</button>
-                <button onclick="filterMarket('gift')" class="market-filter-btn bg-gray-800 text-gray-300 px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap">🌟 Stars Gifts</button>
-            </div>
-
-            <!-- Market Grid -->
-            <div id="marketGrid" class="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                <!-- Dynamically populated -->
-            </div>
-        </section>
-
-        <!-- ================= ADMIN PANEL TAB ================= -->
-        <section id="tab-admin" class="p-4 hidden">
-            <div class="glass-panel p-4 rounded-2xl border border-red-500/30 mb-6 bg-red-950/20">
-                <div class="flex items-center justify-between mb-2">
-                    <div class="flex items-center space-x-2 text-red-400">
-                        <i class="fa-solid fa-user-shield text-xl"></i>
-                        <h2 class="text-lg font-bold text-white">Админ Панель</h2>
+        <!-- SECTION 3: ADMIN PANEL TAB -->
+        <section id="tab-admin" class="hidden space-y-4">
+            
+            <div class="glass-card rounded-2xl p-4 border-brand-neonPink/40">
+                <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+                    <div>
+                        <h2 class="font-bold text-base text-brand-neonPink flex items-center gap-2">
+                            <i data-lucide="shield-check" class="w-5 h-5"></i> Админ-панель @yung_roxy
+                        </h2>
+                        <p class="text-xs text-slate-400">Управление экономикой и системой</p>
                     </div>
-                    <!-- Demo Mode Switcher for Testing -->
-                    <label class="flex items-center gap-2 cursor-pointer text-xs text-gray-300">
-                        <span>Демо Админ</span>
-                        <input type="checkbox" id="adminToggle" onchange="toggleAdminOverride(this.checked)" class="toggle-checkbox rounded bg-gray-800">
-                    </label>
+                    <span class="bg-brand-neonPink/20 text-brand-neonPink text-[10px] font-mono px-2 py-1 rounded border border-brand-neonPink/30">v1.0.4 VIP</span>
                 </div>
-                <p class="text-xs text-gray-300">Управление маркетом и выдача балансов для <strong class="text-red-400">@yung_roxy</strong>.</p>
-            </div>
 
-            <div class="space-y-4">
-                <!-- Add Balance Form -->
-                <div class="glass-panel p-4 rounded-xl border border-white/10">
-                    <h3 class="text-sm font-bold text-white mb-3 flex items-center gap-2">
-                        <i class="fa-solid fa-coins text-amber-400"></i> Пополнение баланса (💎 ICES)
-                    </h3>
-                    <div class="space-y-2">
-                        <input type="text" id="adminTargetUser" placeholder="Юзернейм (например, @yung_roxy)" class="w-full bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500">
-                        <input type="number" id="adminAmount" placeholder="Количество ICES (например, 50000)" class="w-full bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500">
-                        <button onclick="adminGrantBalance()" class="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-2.5 rounded-lg text-xs transition-colors shadow-md">
-                            Начислить баланс
-                        </button>
+                <!-- ADMIN STATS GRID -->
+                <div class="grid grid-cols-2 gap-2 mt-4">
+                    <div class="bg-slate-900/90 border border-slate-800 p-3 rounded-xl">
+                        <div class="text-[11px] text-slate-400">Всего игроков</div>
+                        <div id="stat-total-players" class="text-lg font-mono font-bold text-white">1</div>
+                    </div>
+                    <div class="bg-slate-900/90 border border-slate-800 p-3 rounded-xl">
+                        <div class="text-[11px] text-slate-400">Общий объем ставок</div>
+                        <div id="stat-total-volume" class="text-lg font-mono font-bold text-brand-gold">0 🪙</div>
+                    </div>
+                    <div class="bg-slate-900/90 border border-slate-800 p-3 rounded-xl">
+                        <div class="text-[11px] text-slate-400">Профит Дома (Casino Profit)</div>
+                        <div id="stat-house-profit" class="text-lg font-mono font-bold text-brand-neonGreen">+0 🪙</div>
+                    </div>
+                    <div class="bg-slate-900/90 border border-slate-800 p-3 rounded-xl">
+                        <div class="text-[11px] text-slate-400">Сыграно раундов</div>
+                        <div id="stat-total-rounds" class="text-lg font-mono font-bold text-brand-neonBlue">0</div>
                     </div>
                 </div>
 
-                <!-- Add Custom Real Photo NFT to Market -->
-                <div class="glass-panel p-4 rounded-xl border border-white/10">
-                    <h3 class="text-sm font-bold text-white mb-3 flex items-center gap-2">
-                        <i class="fa-solid fa-plus-circle text-green-400"></i> Пополнить Маркет новым NFT (Только Админ)
-                    </h3>
-                    <div class="space-y-2">
-                        <input type="text" id="adminNewNftName" placeholder="Название (напр. Telegram Star Gift Red)" class="w-full bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-xs text-white placeholder-gray-500 focus:outline-none">
-                        <div class="grid grid-cols-2 gap-2">
-                            <input type="number" id="adminNewNftPrice" placeholder="Цена в ICES" class="bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-xs text-white placeholder-gray-500 focus:outline-none">
-                            <select id="adminNewNftRarity" class="bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-xs text-white focus:outline-none">
-                                <option value="common">Common</option>
-                                <option value="rare">Rare</option>
-                                <option value="epic">Epic</option>
-                                <option value="legendary">Legendary</option>
-                                <option value="mythic">Mythic</option>
-                            </select>
+                <!-- HOUSE EDGE & MAINTENANCE SETTINGS -->
+                <div class="mt-4 pt-4 border-t border-slate-800 space-y-4">
+                    
+                    <!-- House Edge Config Slider -->
+                    <div class="space-y-1.5">
+                        <div class="flex justify-between text-xs">
+                            <span class="text-slate-300 font-semibold">Комиссия системы (House Edge)</span>
+                            <span id="admin-house-edge-val" class="font-mono text-brand-neonPink font-bold">5%</span>
                         </div>
-                        <select id="adminNewNftCategory" class="w-full bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-xs text-white focus:outline-none">
-                            <option value="doshirak">🍜 Доширак</option>
-                            <option value="pepe">🐸 Pepe & Мемы</option>
-                            <option value="telegram">📱 Telegram NFT</option>
-                            <option value="gift">🌟 Stars Gift</option>
-                        </select>
-                        <input type="text" id="adminNewNftImage" placeholder="URL Картинки (https://...)" class="w-full bg-black/50 border border-white/10 rounded-lg px-3 py-2 text-xs text-white placeholder-gray-500 focus:outline-none">
-                        <button onclick="adminCreateMarketNFT()" class="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-2.5 rounded-lg text-xs transition-colors shadow-md">
-                            Добавить предмет в Маркет
-                        </button>
+                        <input type="range" id="admin-house-edge-input" min="1" max="15" step="0.5" value="5" oninput="app.updateHouseEdge(this.value)">
+                        <div class="text-[10px] text-slate-500">Определяет процент преимущества платформы при расчете шанса.</div>
+                    </div>
+
+                    <!-- Maintenance Toggle -->
+                    <div class="flex items-center justify-between bg-slate-900/80 p-3 rounded-xl border border-slate-800">
+                        <div>
+                            <div class="text-xs font-semibold text-white">Режим Технических Работ</div>
+                            <div class="text-[10px] text-slate-400">Заблокировать новые ставки для игроков</div>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="maintenance-toggle" onchange="app.toggleMaintenance(this.checked)" class="sr-only peer">
+                            <div class="w-11 h-6 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-neonPink"></div>
+                        </label>
+                    </div>
+
+                    <!-- User Balance Adjustment -->
+                    <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-800 space-y-2">
+                        <div class="text-xs font-semibold text-white">Корректировка Баланса Игрока</div>
+                        <div class="flex gap-2">
+                            <input type="number" id="admin-balance-input" placeholder="Количество монет" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs font-mono text-white focus:outline-none">
+                            <button onclick="app.adminModifyBalance(true)" class="bg-brand-neonGreen/20 hover:bg-brand-neonGreen/30 text-brand-neonGreen border border-brand-neonGreen/50 px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap">+ Выдать</button>
+                            <button onclick="app.adminModifyBalance(false)" class="bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-500/50 px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap">- Списать</button>
+                        </div>
                     </div>
                 </div>
+            </div>
 
+            <!-- BACKEND INTEGRATION INSTRUCTIONS CARD -->
+            <div class="glass-card rounded-2xl p-4 space-y-2 border-brand-purple/40">
+                <h3 class="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+                    <i data-lucide="code" class="w-4 h-4 text-brand-neonBlue"></i> Руководство по интеграции Node.js
+                </h3>
+                <p class="text-[11px] text-slate-400 leading-relaxed">
+                    Для продакшена интегрируйте WebApp инициализацию с проверкой <code class="text-brand-neonBlue">initData</code> на стороне Node.js сервера через HMAC-SHA256.
+                </p>
+                <div class="bg-slate-950 p-2.5 rounded-lg font-mono text-[10px] text-slate-300 overflow-x-auto border border-slate-800">
+                    // Server-side check example<br>
+                    const crypto = require('crypto');<br>
+                    const secret = crypto.createHmac('sha256', 'WebAppData').update(BOT_TOKEN).digest();
+                </div>
             </div>
         </section>
 
     </main>
 
-    <!-- Bottom Navigation Bar -->
-    <nav class="fixed bottom-0 left-0 right-0 z-40 glass-panel border-t border-white/10 px-4 py-2 flex justify-around items-center">
-        <button onclick="switchTab('upgrader')" id="nav-upgrader" class="nav-btn active flex flex-col items-center gap-1 text-cyan-400 transition-colors">
-            <i class="fa-solid fa-bolt-lightning text-lg"></i>
-            <span class="text-[10px] font-bold">Апгрейд</span>
-        </button>
-        <button onclick="switchTab('inventory')" id="nav-inventory" class="nav-btn flex flex-col items-center gap-1 text-gray-400 hover:text-white transition-colors">
-            <i class="fa-solid fa-box-archive text-lg"></i>
-            <span class="text-[10px] font-bold">Инвентарь</span>
-        </button>
-        <button onclick="switchTab('market')" id="nav-market" class="nav-btn flex flex-col items-center gap-1 text-gray-400 hover:text-white transition-colors">
-            <i class="fa-solid fa-store text-lg"></i>
-            <span class="text-[10px] font-bold">Маркет</span>
-        </button>
-        <button onclick="switchTab('admin')" id="nav-admin" class="nav-btn flex flex-col items-center gap-1 text-red-400 hover:text-red-300 transition-colors">
-            <i class="fa-solid fa-user-gear text-lg"></i>
-            <span class="text-[10px] font-bold">Админка</span>
-        </button>
-    </nav>
-
-    <!-- ITEM SELECTOR MODAL -->
-    <div id="itemModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden flex flex-col justify-end sm:justify-center items-center p-0 sm:p-4 transition-opacity duration-300">
-        <div class="glass-panel w-full sm:max-w-md h-[80vh] sm:h-[600px] rounded-t-3xl sm:rounded-2xl flex flex-col overflow-hidden border border-white/10">
-            <div class="px-5 py-4 border-b border-white/10 flex items-center justify-between">
-                <div>
-                    <h3 id="modalTitle" class="font-bold text-white text-base">Выберите предмет</h3>
-                    <p id="modalSubtitle" class="text-xs text-gray-400">Выберите элемент для улучшений</p>
-                </div>
-                <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-gray-400 hover:text-white">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            </div>
-
-            <div id="modalItemsList" class="flex-1 overflow-y-auto p-4 grid grid-cols-2 gap-3 no-scrollbar">
-                <!-- Dynamically populated -->
-            </div>
-        </div>
-    </div>
-
-    <!-- RESULT NOTIFICATION POPUP -->
-    <div id="resultModal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-lg hidden flex flex-col items-center justify-center p-6 text-center">
-        <div class="w-full max-w-xs glass-panel p-6 rounded-3xl border border-white/10 flex flex-col items-center relative overflow-hidden animate-float">
-            <div id="resultGlow" class="absolute -top-24 w-48 h-48 rounded-full blur-3xl opacity-60"></div>
-
-            <div id="resultIcon" class="w-20 h-20 rounded-2xl flex items-center justify-center text-4xl mb-4 z-10 shadow-xl"></div>
-
-            <h3 id="resultTitle" class="text-2xl font-black mb-1 z-10">УСПЕХ!</h3>
-            <p id="resultDesc" class="text-xs text-gray-300 mb-4 z-10">Вы успешно улучшили ваш предмет!</p>
-
-            <div id="resultNftCard" class="w-full glass-card p-3 rounded-xl mb-5 flex items-center gap-3 z-10 border border-white/10"></div>
-
-            <button onclick="closeResultModal()" class="w-full py-3 bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-extrabold text-sm rounded-xl shadow-lg z-10">
-                ПРОДОЛЖИТЬ
+    <!-- BOTTOM NAVBAR -->
+    <nav class="fixed bottom-0 left-0 right-0 z-40 glass-card border-t border-brand-purple/20 px-4 py-2">
+        <div class="max-w-md mx-auto grid grid-cols-3 gap-2">
+            <button id="nav-game" onclick="app.switchTab('game')" class="flex flex-col items-center justify-center py-1 rounded-xl text-brand-neonBlue transition">
+                <i data-lucide="gamepad-2" class="w-5 h-5"></i>
+                <span class="text-[10px] font-bold mt-1">Апгрейдер</span>
+            </button>
+            <button id="nav-history" onclick="app.switchTab('history')" class="flex flex-col items-center justify-center py-1 rounded-xl text-slate-400 hover:text-slate-200 transition">
+                <i data-lucide="history" class="w-5 h-5"></i>
+                <span class="text-[10px] font-bold mt-1">История</span>
+            </button>
+            <button id="nav-admin" onclick="app.switchTab('admin')" class="flex flex-col items-center justify-center py-1 rounded-xl text-slate-400 hover:text-slate-200 transition">
+                <i data-lucide="shield" class="w-5 h-5"></i>
+                <span class="text-[10px] font-bold mt-1">Админка</span>
             </button>
         </div>
+    </nav>
+
+    <!-- CUSTOM TOAST NOTIFICATION -->
+    <div id="toast" class="fixed top-16 left-1/2 -translate-x-1/2 z-50 glass-card px-4 py-2 rounded-xl text-xs font-semibold shadow-2xl transition-all duration-300 opacity-0 pointer-events-none border border-brand-purple/40">
+        Уведомление
     </div>
 
-    <!-- APPLICATION LOGIC SCRIPT -->
+    <!-- APPLICATION LOGIC JS -->
     <script>
-        // High quality photo assets for Telegram Gifts, Doshirak and Pepe
-        const DEFAULT_TEMPLATES = [
-            { id: 'tmpl_1', name: 'Telegram Star Gift Red', price: 2500, rarity: 'rare', category: 'gift', image: 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?w=300&auto=format&fit=crop&q=80' },
-            { id: 'tmpl_2', name: 'NFT Доширак Куриный', price: 1500, rarity: 'common', category: 'doshirak', image: 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=300&auto=format&fit=crop&q=80' },
-            { id: 'tmpl_3', name: 'Pepe King Meme NFT', price: 12000, rarity: 'legendary', category: 'pepe', image: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?w=300&auto=format&fit=crop&q=80' },
-            { id: 'tmpl_4', name: 'Anonymous Number +888', price: 8000, rarity: 'epic', category: 'telegram', image: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=300&auto=format&fit=crop&q=80' }
-        ];
+        /**
+         * Web Audio API Synthesizer for Retro Cyberpunk SFX
+         */
+        class SoundFX {
+            constructor() {
+                this.ctx = null;
+            }
 
-        // State Management
-        let appState = {
-            currentUser: {
-                username: '@user',
-                isAdmin: false,
-                balance: 10000 // Starter bonus
-            },
-            inventory: [],
-            market: [], // EMPTY MARKET BY DEFAULT - MUST BE POPULATED BY ADMIN
-            selectedSourceItem: null,
-            selectedTargetItem: null,
-            rollDirection: 'under',
-            winChance: 0,
-            isSpinning: false
-        };
+            init() {
+                if (!this.ctx) {
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    if (AudioContext) this.ctx = new AudioContext();
+                }
+            }
 
-        let tg = window.Telegram ? window.Telegram.WebApp : null;
+            playClick() {
+                if (!this.ctx) return;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(800, this.ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(400, this.ctx.currentTime + 0.05);
+                gain.gain.setValueAtTime(0.1, this.ctx.currentTime);
+                gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.05);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.05);
+            }
 
-        function initApp() {
-            if (tg) {
-                tg.ready();
-                tg.expand();
+            playTick() {
+                if (!this.ctx) return;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(300 + Math.random() * 200, this.ctx.currentTime);
+                gain.gain.setValueAtTime(0.04, this.ctx.currentTime);
+                gain.gain.linearRampToValueAtTime(0.001, this.ctx.currentTime + 0.03);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.03);
+            }
+
+            playWin() {
+                if (!this.ctx) return;
+                const now = this.ctx.currentTime;
+                const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+                notes.forEach((freq, idx) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = 'square';
+                    osc.frequency.setValueAtTime(freq, now + idx * 0.08);
+                    gain.gain.setValueAtTime(0.08, now + idx * 0.08);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.08 + 0.25);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(now + idx * 0.08);
+                    osc.stop(now + idx * 0.08 + 0.25);
+                });
+            }
+
+            playLoss() {
+                if (!this.ctx) return;
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(220, now);
+                osc.frequency.linearRampToValueAtTime(110, now + 0.3);
+                gain.gain.setValueAtTime(0.1, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + 0.3);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.3);
+            }
+        }
+
+        /**
+         * Upgrader Application Logic & State Management
+         */
+        class App {
+            constructor() {
+                this.tg = window.Telegram?.WebApp;
+                this.sfx = new SoundFX();
                 
-                if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
-                    const tgUser = tg.initDataUnsafe.user;
-                    const username = tgUser.username ? `@${tgUser.username}` : (tgUser.first_name || '@user');
-                    appState.currentUser.username = username;
-                }
-            }
-
-            // Admin verification check for @yung_roxy
-            if (appState.currentUser.username.toLowerCase() === '@yung_roxy') {
-                appState.currentUser.isAdmin = true;
-            }
-
-            loadState();
-            renderUserInfo();
-            drawWheel(0, 0, false);
-            renderInventory();
-            renderMarket();
-        }
-
-        function toggleAdminOverride(checked) {
-            appState.currentUser.isAdmin = checked;
-            renderUserInfo();
-            renderMarket();
-            showToast(checked ? "Демо Админ активирован!" : "Демо Админ деактивирован");
-        }
-
-        function saveState() {
-            localStorage.setItem('tg_nft_upgrader_state_v3', JSON.stringify({
-                balance: appState.currentUser.balance,
-                inventory: appState.inventory,
-                market: appState.market
-            }));
-        }
-
-        function loadState() {
-            const saved = localStorage.getItem('tg_nft_upgrader_state_v3');
-            if (saved) {
-                try {
-                    const parsed = JSON.parse(saved);
-                    appState.currentUser.balance = parsed.balance !== undefined ? parsed.balance : 10000;
-                    appState.inventory = parsed.inventory || [];
-                    appState.market = parsed.market || [];
-                } catch(e) {}
-            } else {
-                // Initial Starter Pack given as bonus in Inventory (Market is empty)
-                appState.inventory = [
-                    { 
-                        id: 'starter_1', 
-                        name: 'NFT Доширак Сытный', 
-                        price: 1500, 
-                        rarity: 'common', 
-                        category: 'doshirak', 
-                        image: 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=300&auto=format&fit=crop&q=80',
-                        instanceId: 'inv_' + Date.now() + '_1' 
+                // Application State
+                this.state = {
+                    balance: 1000,
+                    userRole: 'user', // 'user' or 'admin'
+                    multiplier: 2.0,
+                    betAmount: 50,
+                    houseEdge: 5.0, // 5% platform edge
+                    isMaintenance: false,
+                    isPlaying: false,
+                    history: [],
+                    
+                    // Admin Stats
+                    stats: {
+                        totalPlayers: 1,
+                        totalVolume: 0,
+                        houseProfit: 0,
+                        totalRounds: 0
                     }
-                ];
-                appState.market = []; // MARKET STARTS EMPTY ACCORDING TO REQUIREMENTS
-                saveState();
-            }
-        }
+                };
 
-        function renderUserInfo() {
-            document.getElementById('usernameDisplay').textContent = appState.currentUser.username;
-            document.getElementById('userAvatarText').textContent = appState.currentUser.username.replace('@','').substring(0,2).toUpperCase();
-            document.getElementById('userBalance').textContent = appState.currentUser.balance.toLocaleString('ru-RU');
+                // Canvas State
+                this.canvas = document.getElementById('upgrader-canvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.currentAngle = 0;
+                this.animFrame = null;
 
-            const adminBadge = document.getElementById('adminBadge');
-            const adminNav = document.getElementById('nav-admin');
-            const adminToggle = document.getElementById('adminToggle');
-
-            if (appState.currentUser.isAdmin) {
-                adminBadge.classList.remove('hidden');
-                adminNav.classList.remove('hidden');
-                adminNav.classList.add('flex');
-                if (adminToggle) adminToggle.checked = true;
-            } else {
-                adminBadge.classList.add('hidden');
-                adminNav.classList.add('hidden');
-                adminNav.classList.remove('flex');
-            }
-        }
-
-        function switchTab(tabName) {
-            document.querySelectorAll('main > section').forEach(sec => sec.classList.add('hidden'));
-            document.querySelectorAll('.nav-btn').forEach(btn => {
-                btn.classList.remove('text-cyan-400');
-                btn.classList.add('text-gray-400');
-            });
-
-            const activeTab = document.getElementById(`tab-${tabName}`);
-            const activeNav = document.getElementById(`nav-${tabName}`);
-
-            if (activeTab) activeTab.classList.remove('hidden');
-            if (activeNav) {
-                activeNav.classList.remove('text-gray-400');
-                activeNav.classList.add('text-cyan-400');
+                this.initTelegramApp();
+                this.bindEvents();
+                this.renderCanvas(0);
+                this.updateCalculations();
+                this.switchTab('game');
             }
 
-            if (tabName === 'inventory') renderInventory();
-            if (tabName === 'market') renderMarket();
-        }
+            initTelegramApp() {
+                if (this.tg) {
+                    this.tg.ready();
+                    this.tg.expand();
+                    
+                    // Populate User Data from Telegram WebApp
+                    const user = this.tg.initDataUnsafe?.user;
+                    if (user) {
+                        document.getElementById('user-name').innerText = `@${user.username || user.first_name}`;
+                        if (user.photo_url) {
+                            document.getElementById('user-avatar').src = user.photo_url;
+                        }
+                    }
 
-        // ================= UPGRADER CANVAS LOGIC =================
-
-        const canvas = document.getElementById('upgradeCanvas');
-        const ctx = canvas.getContext('2d');
-
-        function calculateChance() {
-            if (!appState.selectedSourceItem || !appState.selectedTargetItem) {
-                appState.winChance = 0;
-                updateUpgraderUI();
-                drawWheel(0, 0, false);
-                return;
-            }
-
-            const srcPrice = appState.selectedSourceItem.price;
-            const targetPrice = appState.selectedTargetItem.price;
-
-            let chance = (srcPrice / targetPrice) * 100;
-            chance = Math.min(Math.max(chance, 1.00), 95.00);
-
-            appState.winChance = chance;
-            updateUpgraderUI();
-            drawWheel(chance, 0, false);
-        }
-
-        function setRollDirection(dir) {
-            appState.rollDirection = dir;
-            const btnUnder = document.getElementById('btnRollUnder');
-            const btnOver = document.getElementById('btnRollOver');
-
-            if (dir === 'under') {
-                btnUnder.className = "flex-1 py-1.5 text-xs font-bold rounded-lg transition-all bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow";
-                btnOver.className = "flex-1 py-1.5 text-xs font-bold rounded-lg transition-all text-gray-400 hover:text-white border border-transparent";
-            } else {
-                btnOver.className = "flex-1 py-1.5 text-xs font-bold rounded-lg transition-all bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow";
-                btnUnder.className = "flex-1 py-1.5 text-xs font-bold rounded-lg transition-all text-gray-400 hover:text-white border border-transparent";
-            }
-
-            updateUpgraderUI();
-            drawWheel(appState.winChance, 0, false);
-        }
-
-        function updateUpgraderUI() {
-            const chanceLabel = document.getElementById('chanceLabel');
-            const multiplierLabel = document.getElementById('multiplierLabel');
-            const statusText = document.getElementById('upgradeStatusText');
-            const rollRangeText = document.getElementById('rollRangeText');
-            const rollUnderVal = document.getElementById('rollUnderVal');
-            const rollOverVal = document.getElementById('rollOverVal');
-
-            const chance = appState.winChance;
-            chanceLabel.textContent = `${chance.toFixed(2)}%`;
-
-            if (chance > 0) {
-                const mult = (100 / chance).toFixed(2);
-                multiplierLabel.textContent = `x${mult}`;
-            } else {
-                multiplierLabel.textContent = `x0.00`;
-            }
-
-            if (appState.rollDirection === 'under') {
-                rollUnderVal.textContent = `0 - ${chance.toFixed(2)}`;
-                rollOverVal.textContent = `${(100 - chance).toFixed(2)} - 100`;
-                rollRangeText.textContent = `0.00 - ${chance.toFixed(2)}`;
-            } else {
-                rollUnderVal.textContent = `0 - ${(100 - chance).toFixed(2)}`;
-                rollOverVal.textContent = `${(100 - chance).toFixed(2)} - 100`;
-                rollRangeText.textContent = `${(100 - chance).toFixed(2)} - 100.00`;
-            }
-
-            if (!appState.selectedSourceItem) {
-                statusText.textContent = "Выберите ваш предмет";
-                disableUpgradeBtn("ВЫБЕРИТЕ ПРЕДМЕТ");
-            } else if (!appState.selectedTargetItem) {
-                statusText.textContent = "Выберите цель NFT";
-                disableUpgradeBtn("ВЫБЕРИТЕ ЦЕЛЬ");
-            } else if (appState.selectedSourceItem.instanceId && appState.selectedSourceItem.instanceId === appState.selectedTargetItem.instanceId) {
-                statusText.textContent = "Предметы совпадают";
-                disableUpgradeBtn("ВЫБЕРИТЕ ДРУГУЮ ЦЕЛЬ");
-            } else if (appState.isSpinning) {
-                statusText.textContent = "Крутим диск...";
-                disableUpgradeBtn("УЛУЧШАЕМ...");
-            } else {
-                statusText.textContent = "Готово к апгрейду!";
-                enableUpgradeBtn();
-            }
-        }
-
-        function disableUpgradeBtn(text) {
-            const btn = document.getElementById('upgradeBtn');
-            btn.disabled = true;
-            btn.textContent = text;
-            btn.className = "w-full py-4 rounded-xl font-extrabold text-base uppercase tracking-wider transition-all duration-300 shadow-lg bg-gray-800 text-gray-500 cursor-not-allowed border border-white/5";
-        }
-
-        function enableUpgradeBtn() {
-            const btn = document.getElementById('upgradeBtn');
-            btn.disabled = false;
-            btn.textContent = "УЛУЧШИТЬ ПРЕДМЕТ";
-            btn.className = "w-full py-4 rounded-xl font-extrabold text-base uppercase tracking-wider transition-all duration-300 shadow-lg bg-gradient-to-r from-cyan-500 via-blue-600 to-purple-600 hover:brightness-110 text-white cursor-pointer border border-cyan-400/30 glow-cyan active:scale-98";
-        }
-
-        function drawWheel(winChancePercent, rotationAngle = 0, isWinAnimation = false) {
-            const width = canvas.width;
-            const height = canvas.height;
-            const centerX = width / 2;
-            const centerY = height / 2;
-            const radius = width / 2 - 15;
-
-            ctx.clearRect(0, 0, width, height);
-
-            ctx.beginPath();
-            ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
-            ctx.fillStyle = '#111827';
-            ctx.fill();
-            ctx.lineWidth = 4;
-            ctx.strokeStyle = '#1f2937';
-            ctx.stroke();
-
-            if (winChancePercent <= 0) {
-                ctx.beginPath();
-                ctx.arc(centerX, centerY, radius - 8, 0, Math.PI * 2);
-                ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
-                ctx.lineWidth = 14;
-                ctx.stroke();
-                return;
-            }
-
-            const winAngle = (winChancePercent / 100) * (Math.PI * 2);
-            let startAngle, endAngle;
-
-            if (appState.rollDirection === 'under') {
-                startAngle = -Math.PI / 2 + rotationAngle;
-                endAngle = startAngle + winAngle;
-            } else {
-                endAngle = -Math.PI / 2 + Math.PI * 2 + rotationAngle;
-                startAngle = endAngle - winAngle;
-            }
-
-            ctx.beginPath();
-            ctx.arc(centerX, centerY, radius - 10, 0, Math.PI * 2);
-            ctx.lineWidth = 16;
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.06)';
-            ctx.stroke();
-
-            const gradient = ctx.createConicGradient(startAngle, centerX, centerY);
-            gradient.addColorStop(0, '#38bdf8');
-            gradient.addColorStop(0.5, '#818cf8');
-            gradient.addColorStop(1, '#c084fc');
-
-            ctx.beginPath();
-            ctx.arc(centerX, centerY, radius - 10, startAngle, endAngle);
-            ctx.lineWidth = 18;
-            ctx.strokeStyle = gradient;
-            ctx.lineCap = 'round';
-            ctx.stroke();
-
-            ctx.beginPath();
-            ctx.arc(centerX, centerY, radius - 10, startAngle, endAngle);
-            ctx.lineWidth = 4;
-            ctx.strokeStyle = '#ffffff';
-            ctx.shadowColor = '#38bdf8';
-            ctx.shadowBlur = 12;
-            ctx.stroke();
-            ctx.shadowBlur = 0;
-        }
-
-        function startUpgrade() {
-            if (appState.isSpinning || !appState.selectedSourceItem || !appState.selectedTargetItem) return;
-
-            appState.isSpinning = true;
-            updateUpgraderUI();
-
-            const chance = appState.winChance;
-            const rollResult = Math.random() * 100;
-            
-            let isWin = false;
-            if (appState.rollDirection === 'under') {
-                isWin = rollResult <= chance;
-            } else {
-                isWin = rollResult >= (100 - chance);
-            }
-
-            const targetDegree = (rollResult / 100) * 360;
-            const totalDegrees = 360 * 4 + targetDegree;
-            const duration = 4000;
-            const startTime = performance.now();
-            let lastSoundTick = 0;
-
-            function animateSpin(currentTime) {
-                const elapsed = currentTime - startTime;
-                const progress = Math.min(elapsed / duration, 1);
-                const easeOut = 1 - Math.pow(1 - progress, 3);
-                const currentDeg = totalDegrees * easeOut;
-                const currentRad = (currentDeg * Math.PI) / 180;
-
-                if (elapsed - lastSoundTick > 70 + (progress * 250)) {
-                    playSound('tick');
-                    lastSoundTick = elapsed;
+                    // Check if User is Admin (Simulated whitelist check for @yung_roxy)
+                    if (user && (user.username === 'yung_roxy' || user.id === 123456789)) {
+                        this.switchRole('admin');
+                    }
                 }
+            }
 
-                drawWheel(chance, currentRad, false);
+            triggerHaptic(type = 'light') {
+                if (this.tg && this.tg.HapticFeedback) {
+                    try {
+                        if (type === 'success') this.tg.HapticFeedback.notificationOccurred('success');
+                        else if (type === 'error') this.tg.HapticFeedback.notificationOccurred('error');
+                        else if (type === 'medium') this.tg.HapticFeedback.impactOccurred('medium');
+                        else if (type === 'heavy') this.tg.HapticFeedback.impactOccurred('heavy');
+                        else this.tg.HapticFeedback.impactOccurred('light');
+                    } catch (e) {
+                        console.log('Haptic error', e);
+                    }
+                }
+            }
 
-                if (progress < 1) {
-                    requestAnimationFrame(animateSpin);
+            switchRole(role) {
+                this.state.userRole = role;
+                const adminBadge = document.getElementById('admin-badge');
+                const roleUserBtn = document.getElementById('role-user-btn');
+                const roleAdminBtn = document.getElementById('role-admin-btn');
+
+                if (role === 'admin') {
+                    adminBadge.classList.remove('hidden');
+                    roleAdminBtn.className = "px-2 py-0.5 rounded text-[11px] bg-brand-neonPink text-white font-semibold shadow-neon-pink";
+                    roleUserBtn.className = "px-2 py-0.5 rounded text-[11px] bg-slate-800 text-slate-400 hover:text-white";
+                    this.showToast('Режим администратора активирован');
                 } else {
-                    appState.isSpinning = false;
-                    handleUpgradeResult(isWin, rollResult);
+                    adminBadge.classList.add('hidden');
+                    roleUserBtn.className = "px-2 py-0.5 rounded text-[11px] bg-brand-purple text-white font-semibold";
+                    roleAdminBtn.className = "px-2 py-0.5 rounded text-[11px] bg-slate-800 text-slate-400 hover:text-white";
+                    this.showToast('Режим игрока активирован');
                 }
             }
 
-            requestAnimationFrame(animateSpin);
-        }
+            bindEvents() {
+                // Multiplier slider listener
+                const slider = document.getElementById('multiplier-slider');
+                slider.addEventListener('input', (e) => {
+                    this.setMultiplier(parseFloat(e.target.value));
+                    this.sfx.playTick();
+                });
 
-        function handleUpgradeResult(isWin, rollResult) {
-            const sourceItem = appState.selectedSourceItem;
-            const targetItem = appState.selectedTargetItem;
+                // Bet input listener
+                const betInput = document.getElementById('bet-input');
+                betInput.addEventListener('input', (e) => {
+                    let val = parseInt(e.target.value) || 0;
+                    this.state.betAmount = val;
+                    this.updateCalculations();
+                });
 
-            appState.inventory = appState.inventory.filter(i => i.instanceId !== sourceItem.instanceId);
-
-            if (isWin) {
-                const newNft = { ...targetItem, instanceId: 'inv_' + Date.now() };
-                appState.inventory.unshift(newNft);
-                saveState();
-
-                playSound('win');
-                showResultModal(true, targetItem, rollResult);
-            } else {
-                saveState();
-                playSound('fail');
-                showResultModal(false, sourceItem, rollResult);
+                // Touch/Audio Init on First Click
+                document.body.addEventListener('click', () => {
+                    this.sfx.init();
+                }, { once: true });
             }
 
-            appState.selectedSourceItem = null;
-            appState.selectedTargetItem = null;
-            resetSlotUI('source');
-            resetSlotUI('target');
-            calculateChance();
-            renderInventory();
-        }
-
-        function showResultModal(isWin, item, rollResult) {
-            const modal = document.getElementById('resultModal');
-            const icon = document.getElementById('resultIcon');
-            const title = document.getElementById('resultTitle');
-            const desc = document.getElementById('resultDesc');
-            const nftCard = document.getElementById('resultNftCard');
-            const glow = document.getElementById('resultGlow');
-
-            if (isWin) {
-                glow.className = "absolute -top-24 w-48 h-48 rounded-full blur-3xl opacity-60 bg-green-500";
-                icon.className = "w-20 h-20 rounded-2xl bg-green-500/20 text-green-400 border border-green-500/40 flex items-center justify-center text-4xl mb-4 z-10 shadow-xl glow-cyan";
-                icon.innerHTML = '<i class="fa-solid fa-trophy"></i>';
-                title.textContent = "УСПЕШНЫЙ АПГРЕЙД!";
-                title.className = "text-2xl font-black mb-1 z-10 text-green-400";
-                desc.textContent = `Выпало число: ${rollResult.toFixed(2)}. Предмет добавлен в инвентарь!`;
-
-                nftCard.innerHTML = `
-                    <div class="text-3xl p-2 rounded-lg bg-black/40">${item.icon}</div>
-                    <div class="text-left flex-1">
-                        <div class="text-sm font-bold text-white">${item.name}</div>
-                        <div class="text-xs text-gray-400 uppercase font-semibold">${item.rarity}</div>
-                    </div>
-                    <div class="text-sm font-extrabold text-cyan-400">${item.price.toLocaleString('ru-RU')} 💎</div>
-                `;
-            } else {
-                glow.className = "absolute -top-24 w-48 h-48 rounded-full blur-3xl opacity-60 bg-red-500";
-                icon.className = "w-20 h-20 rounded-2xl bg-red-500/20 text-red-400 border border-red-500/40 flex items-center justify-center text-4xl mb-4 z-10 shadow-xl";
-                icon.innerHTML = '<i class="fa-solid fa-skull-crossbones"></i>';
-                title.textContent = "НЕУДАЧА";
-                title.className = "text-2xl font-black mb-1 z-10 text-red-400";
-                desc.textContent = `Выпало число: ${rollResult.toFixed(2)}. Ваш предмет сгорел.`;
-
-                nftCard.innerHTML = `
-                    <div class="text-3xl p-2 rounded-lg bg-black/40 grayscale">${item.icon}</div>
-                    <div class="text-left flex-1">
-                        <div class="text-sm font-bold text-gray-400 line-through">${item.name}</div>
-                        <div class="text-xs text-red-400 font-semibold">СГОРЕЛ В УЛУЧШЕНИИ</div>
-                    </div>
-                `;
+            setMultiplier(val) {
+                this.state.multiplier = Math.min(Math.max(val, 1.1), 100);
+                document.getElementById('multiplier-slider').value = this.state.multiplier;
+                this.updateCalculations();
+                this.triggerHaptic('light');
             }
 
-            modal.classList.remove('hidden');
-        }
+            adjustBet(action) {
+                this.sfx.playClick();
+                this.triggerHaptic('light');
+                let current = this.state.betAmount;
 
-        function closeResultModal() {
-            document.getElementById('resultModal').classList.add('hidden');
-        }
+                switch (action) {
+                    case 'min': current = 10; break;
+                    case '+10': current += 10; break;
+                    case '+50': current += 50; break;
+                    case 'half': current = Math.max(10, Math.floor(current / 2)); break;
+                    case 'double': current = current * 2; break;
+                    case 'max': current = this.state.balance; break;
+                }
 
-        // ================= ITEM MODAL & SELECTORS =================
+                this.state.betAmount = current;
+                document.getElementById('bet-input').value = current;
+                this.updateCalculations();
+            }
 
-        function openItemSelector(targetType) {
-            const modal = document.getElementById('itemModal');
-            const title = document.getElementById('modalTitle');
-            const subtitle = document.getElementById('modalSubtitle');
-            const list = document.getElementById('modalItemsList');
+            updateCalculations() {
+                // Win Chance Formula with House Edge: Chance % = (100 / Multiplier) * (1 - HouseEdge / 100)
+                const rawChance = (100 / this.state.multiplier) * (1 - (this.state.houseEdge / 100));
+                const chance = Math.max(0.1, Math.min(95, rawChance)).toFixed(2);
+                
+                const payout = Math.floor(this.state.betAmount * this.state.multiplier);
 
-            list.innerHTML = '';
+                document.getElementById('display-multiplier').innerText = `${this.state.multiplier.toFixed(2)}x`;
+                document.getElementById('display-chance').innerText = `${chance}%`;
+                document.getElementById('display-payout').innerText = payout.toLocaleString();
 
-            if (targetType === 'source') {
-                title.textContent = "Выберите ваш предмет";
-                subtitle.textContent = "Предметы из вашего инвентаря";
+                this.renderCanvas(0); // Update rotor visuals for target chance
+            }
 
-                if (appState.inventory.length === 0) {
-                    list.innerHTML = `
-                        <div class="col-span-2 py-10 flex flex-col items-center justify-center text-center">
-                            <i class="fa-solid fa-box-open text-4xl text-gray-600 mb-3"></i>
-                            <div class="text-sm font-bold text-gray-300">Инвентарь пуст</div>
-                            <p class="text-xs text-gray-500 max-w-xs mt-1 mb-4">Приобретите NFT Доширак или Pepe в Маркете за стартовый бонус 10,000 💎 ICES!</p>
-                            <button onclick="closeModal(); switchTab('market');" class="px-4 py-2 bg-cyan-600 text-white font-bold text-xs rounded-xl shadow">
-                                В Маркет NFT
-                            </button>
-                        </div>
-                    `;
+            /**
+             * Renders Cyberpunk Neon Canvas Rotor
+             */
+            renderCanvas(pointerAngle = 0) {
+                const width = this.canvas.width;
+                const height = this.canvas.height;
+                const cx = width / 2;
+                const cy = height / 2;
+                const radius = 95;
+
+                this.ctx.clearRect(0, 0, width, height);
+
+                // Win Chance Arc Calculation
+                const winChanceRatio = (100 / this.state.multiplier) * (1 - (this.state.houseEdge / 100)) / 100;
+                const winAngle = winChanceRatio * Math.PI * 2;
+
+                // 1. Draw Background Track (Loss Sector - Red/Dark Purple)
+                this.ctx.beginPath();
+                this.ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+                this.ctx.strokeStyle = '#1e1b2e';
+                this.ctx.lineWidth = 16;
+                this.ctx.stroke();
+
+                // 2. Draw Win Sector Arc (Neon Green / Blue)
+                this.ctx.beginPath();
+                // Start from top (-90 deg)
+                const startAngle = -Math.PI / 2;
+                const endAngle = startAngle + winAngle;
+                this.ctx.arc(cx, cy, radius, startAngle, endAngle);
+                
+                const grad = this.ctx.createLinearGradient(0, 0, width, height);
+                grad.addColorStop(0, '#00f0ff');
+                grad.addColorStop(1, '#00ff66');
+                
+                this.ctx.strokeStyle = grad;
+                this.ctx.lineWidth = 16;
+                this.ctx.shadowColor = '#00ff66';
+                this.ctx.shadowBlur = 12;
+                this.ctx.stroke();
+                this.ctx.shadowBlur = 0; // Reset Shadow
+
+                // 3. Draw Outer Glowing Ring
+                this.ctx.beginPath();
+                this.ctx.arc(cx, cy, radius + 14, 0, Math.PI * 2);
+                this.ctx.strokeStyle = 'rgba(157, 78, 221, 0.3)';
+                this.ctx.lineWidth = 2;
+                this.ctx.stroke();
+
+                // 4. Draw Rotating Pointer Needle
+                this.ctx.save();
+                this.ctx.translate(cx, cy);
+                this.ctx.rotate(pointerAngle - Math.PI / 2);
+
+                this.ctx.beginPath();
+                this.ctx.moveTo(0, -radius - 8);
+                this.ctx.lineTo(-8, -radius + 15);
+                this.ctx.lineTo(8, -radius + 15);
+                this.ctx.closePath();
+                this.ctx.fillStyle = '#ff007f';
+                this.ctx.shadowColor = '#ff007f';
+                this.ctx.shadowBlur = 10;
+                this.ctx.fill();
+                this.ctx.restore();
+            }
+
+            playGame() {
+                if (this.state.isPlaying) return;
+
+                if (this.state.isMaintenance) {
+                    this.showToast('Технические работы! Игра приостановлена.');
+                    this.triggerHaptic('error');
+                    return;
+                }
+
+                if (this.state.betAmount <= 0 || isNaN(this.state.betAmount)) {
+                    this.showToast('Введите корректную сумму ставки!');
+                    this.triggerHaptic('error');
+                    return;
+                }
+
+                if (this.state.betAmount > this.state.balance) {
+                    this.showToast('Недостаточно монет на балансе!');
+                    this.triggerHaptic('error');
+                    return;
+                }
+
+                // Deduct Bet
+                this.state.balance -= this.state.betAmount;
+                this.updateBalanceDisplay();
+                this.state.isPlaying = true;
+
+                const btn = document.getElementById('upgrade-btn');
+                btn.disabled = true;
+                btn.classList.add('opacity-50', 'cursor-not-allowed');
+
+                const resMsg = document.getElementById('result-message');
+                resMsg.style.opacity = '0';
+
+                // Determine Win/Loss Result
+                const winChanceRatio = (100 / this.state.multiplier) * (1 - (this.state.houseEdge / 100)) / 100;
+                const randomValue = Math.random(); // 0.0 to 1.0
+                const isWin = randomValue <= winChanceRatio;
+
+                // Calculate Target Angle for Pointer
+                // Win range: 0 to winAngle. Loss range: winAngle to 2*PI.
+                let targetAngle;
+                if (isWin) {
+                    targetAngle = Math.random() * (winChanceRatio * Math.PI * 2);
                 } else {
-                    appState.inventory.forEach(item => {
-                        const card = createItemCardHTML(item, () => selectItemForSlot('source', item));
-                        list.appendChild(card);
-                    });
+                    const winAngle = winChanceRatio * Math.PI * 2;
+                    targetAngle = winAngle + Math.random() * (Math.PI * 2 - winAngle);
                 }
-            } else {
-                title.textContent = "Выберите NFT цель";
-                subtitle.textContent = "NFT Дошираки, Pepe и Telegram Collectibles";
 
-                appState.market.forEach(item => {
-                    const card = createItemCardHTML(item, () => selectItemForSlot('target', item));
-                    list.appendChild(card);
+                // Animation Mechanics (Spin 3 to 5 full rotations + target angle)
+                const fullSpins = 4 * Math.PI * 2;
+                const totalAngle = fullSpins + targetAngle;
+                const duration = 2500; // 2.5s spin
+                const startTime = performance.now();
+
+                const animateSpin = (currentTime) => {
+                    const elapsed = currentTime - startTime;
+                    const progress = Math.min(elapsed / duration, 1);
+                    
+                    // Cubic Ease-Out for dramatic slowing effect
+                    const easeOut = 1 - Math.pow(1 - progress, 3);
+                    const currentAngle = easeOut * totalAngle;
+
+                    this.renderCanvas(currentAngle);
+                    this.sfx.playTick();
+                    this.triggerHaptic('light');
+
+                    if (progress < 1) {
+                        this.animFrame = requestAnimationFrame(animateSpin);
+                    } else {
+                        // Finish Animation & Process Results
+                        this.finalizeGame(isWin);
+                    }
+                };
+
+                requestAnimationFrame(animateSpin);
+            }
+
+            finalizeGame(isWin) {
+                this.state.isPlaying = false;
+                const btn = document.getElementById('upgrade-btn');
+                btn.disabled = false;
+                btn.classList.remove('opacity-50', 'cursor-not-allowed');
+
+                const payout = Math.floor(this.state.betAmount * this.state.multiplier);
+                const resMsg = document.getElementById('result-message');
+
+                if (isWin) {
+                    this.state.balance += payout;
+                    this.sfx.playWin();
+                    this.triggerHaptic('success');
+
+                    resMsg.innerHTML = `<span class="px-4 py-1 rounded-full border border-brand-neonGreen/60 bg-brand-neonGreen/20 text-brand-neonGreen shadow-neon-green">ПОБЕДА! +${payout.toLocaleString()} 🪙</span>`;
+                } else {
+                    this.sfx.playLoss();
+                    this.triggerHaptic('error');
+
+                    resMsg.innerHTML = `<span class="px-4 py-1 rounded-full border border-red-500/60 bg-red-500/20 text-red-400">ПРОИГРЫШ (-${this.state.betAmount.toLocaleString()} 🪙)</span>`;
+                }
+
+                resMsg.style.opacity = '1';
+                this.updateBalanceDisplay();
+
+                // Update Admin Stats
+                this.state.stats.totalRounds++;
+                this.state.stats.totalVolume += this.state.betAmount;
+                if (isWin) {
+                    this.state.stats.houseProfit -= (payout - this.state.betAmount);
+                } else {
+                    this.state.stats.houseProfit += this.state.betAmount;
+                }
+                this.updateAdminStats();
+
+                // Add to History
+                this.state.history.unshift({
+                    id: Date.now(),
+                    isWin,
+                    bet: this.state.betAmount,
+                    multiplier: this.state.multiplier,
+                    payout: isWin ? payout : 0,
+                    time: new Date().toLocaleTimeString().slice(0, 5)
                 });
+
+                if (this.state.history.length > 15) this.state.history.pop();
+                this.renderHistory();
             }
 
-            modal.classList.remove('hidden');
-        }
-
-        function closeModal() {
-            document.getElementById('itemModal').classList.add('hidden');
-        }
-
-        function selectItemForSlot(slot, item) {
-            if (slot === 'source') {
-                appState.selectedSourceItem = item;
-                updateSlotUI('source', item);
-            } else {
-                appState.selectedTargetItem = item;
-                updateSlotUI('target', item);
+            updateBalanceDisplay() {
+                document.getElementById('user-balance').innerText = this.state.balance.toLocaleString();
             }
-            closeModal();
-            calculateChance();
-        }
 
-        function updateSlotUI(slot, item) {
-            const container = document.getElementById(`${slot}ItemContainer`);
-            const priceEl = document.getElementById(`${slot}ItemPrice`);
+            quickTopUp() {
+                this.state.balance += 500;
+                this.updateBalanceDisplay();
+                this.sfx.playClick();
+                this.triggerHaptic('medium');
+                this.showToast('Баланс пополнен на +500 монет!');
+            }
 
-            const imgUrl = item.image || 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?w=300&auto=format&fit=crop&q=80';
+            renderHistory() {
+                const container = document.getElementById('history-container');
+                if (this.state.history.length === 0) {
+                    container.innerHTML = `<div class="text-center text-xs text-slate-500 py-6">История игр пуста</div>`;
+                    return;
+                }
 
-            container.innerHTML = `
-                <div class="w-16 h-16 rounded-xl overflow-hidden mb-1 flex items-center justify-center bg-black/40 border border-white/10">
-                    <img src="${imgUrl}" class="w-full h-full object-cover" alt="${item.name}">
-                </div>
-                <span class="text-xs font-bold text-white text-center truncate max-w-full">${item.name}</span>
-                <span class="text-[10px] uppercase font-semibold text-gray-400">${item.rarity}</span>
-            `;
-
-            priceEl.textContent = `${item.price.toLocaleString('ru-RU')} 💎`;
-            priceEl.classList.remove('hidden');
-        }
-
-        function createItemCardHTML(item, onClickFn) {
-            const div = document.createElement('div');
-            div.className = `glass-card p-2.5 rounded-xl border flex flex-col items-center justify-between cursor-pointer transition-all hover:border-cyan-400/50 relative overflow-hidden`;
-            
-            let rarityColor = "#9ca3af";
-            if (item.rarity === 'rare') rarityColor = "#3b82f6";
-            if (item.rarity === 'epic') rarityColor = "#a855f7";
-            if (item.rarity === 'legendary') rarityColor = "#eab308";
-            if (item.rarity === 'mythic') rarityColor = "#ef4444";
-
-            div.style.borderColor = `${rarityColor}40`;
-            const imgUrl = item.image || 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?w=300&auto=format&fit=crop&q=80';
-
-            div.innerHTML = `
-                <div class="absolute top-0 right-0 w-12 h-12 opacity-15 rounded-full blur-lg" style="background:${rarityColor}"></div>
-                <div class="nft-img-container mb-2">
-                    <img src="${imgUrl}" alt="${item.name}" onerror="this.src='https://images.unsplash.com/photo-1549465220-1a8b9238cd48?w=300&auto=format&fit=crop&q=80'">
-                </div>
-                <div class="w-full text-center">
-                    <div class="text-xs font-bold text-white truncate">${item.name}</div>
-                    <div class="text-[10px] uppercase font-bold tracking-wider" style="color:${rarityColor}">${item.rarity}</div>
-                </div>
-                <div class="mt-2 text-xs font-extrabold text-cyan-300 bg-cyan-950/60 px-2 py-0.5 rounded-md border border-cyan-500/20">
-                    ${item.price.toLocaleString('ru-RU')} 💎
-                </div>
-            `;
-
-            div.addEventListener('click', onClickFn);
-            return div;
-        }
-
-        function renderMarket() {
-            const grid = document.getElementById('marketGrid');
-            grid.innerHTML = '';
-
-            const itemsToDisplay = currentMarketFilter === 'all' 
-                ? appState.market 
-                : appState.market.filter(i => i.category === currentMarketFilter);
-
-            if (itemsToDisplay.length === 0) {
-                grid.innerHTML = `
-                    <div class="col-span-full py-16 flex flex-col items-center justify-center text-center">
-                        <div class="w-16 h-16 rounded-full bg-gray-800/60 flex items-center justify-center text-gray-500 text-2xl mb-3">
-                            <i class="fa-solid fa-store-slash"></i>
+                container.innerHTML = this.state.history.map(item => `
+                    <div class="glass-card p-3 rounded-xl flex items-center justify-between border-l-4 ${item.isWin ? 'border-l-brand-neonGreen' : 'border-l-red-500'}">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs ${item.isWin ? 'bg-brand-neonGreen/20 text-brand-neonGreen' : 'bg-red-500/20 text-red-400'}">
+                                ${item.isWin ? 'WIN' : 'FAIL'}
+                            </div>
+                            <div>
+                                <div class="text-xs font-bold text-white font-mono">${item.multiplier.toFixed(2)}x</div>
+                                <div class="text-[10px] text-slate-400">Ставка: ${item.bet} 🪙</div>
+                            </div>
                         </div>
-                        <h3 class="text-base font-bold text-white">Маркет пока пуст</h3>
-                        <p class="text-xs text-gray-400 max-w-xs mt-1 mb-4">Пополнять маркет товарами может только <strong class="text-cyan-400">@yung_roxy</strong> из админ-панели.</p>
-                    </div>
-                `;
-                return;
-            }
-
-            itemsToDisplay.forEach(item => {
-                const div = document.createElement('div');
-                let rarityColor = "#9ca3af";
-                if (item.rarity === 'rare') rarityColor = "#3b82f6";
-                if (item.rarity === 'epic') rarityColor = "#a855f7";
-                if (item.rarity === 'legendary') rarityColor = "#eab308";
-                if (item.rarity === 'mythic') rarityColor = "#ef4444";
-
-                div.className = `glass-card p-3 rounded-2xl border flex flex-col items-center justify-between relative overflow-hidden`;
-                div.style.borderColor = `${rarityColor}40`;
-
-                const imgUrl = item.image || 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?w=300&auto=format&fit=crop&q=80';
-
-                let deleteBtn = appState.currentUser.isAdmin ? `
-                    <button onclick="adminDeleteMarketItem('${item.id}'); event.stopPropagation();" class="absolute top-2 right-2 bg-red-600/80 hover:bg-red-600 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs shadow z-20">
-                        <i class="fa-solid fa-trash"></i>
-                    </button>
-                ` : '';
-
-                div.innerHTML = `
-                    ${deleteBtn}
-                    <div class="nft-img-container my-1">
-                        <img src="${imgUrl}" alt="${item.name}" onerror="this.src='https://images.unsplash.com/photo-1549465220-1a8b9238cd48?w=300&auto=format&fit=crop&q=80'">
-                    </div>
-                    <div class="w-full text-center mb-2">
-                        <div class="text-xs font-bold text-white truncate">${item.name}</div>
-                        <div class="text-[10px] uppercase font-extrabold tracking-wide" style="color:${rarityColor}">${item.rarity}</div>
-                    </div>
-                    <button onclick="buyMarketItem('${item.id}')" class="w-full py-2 bg-cyan-500/15 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/40 font-extrabold text-xs rounded-xl flex items-center justify-center gap-1 transition-all">
-                        <span>Купить</span>
-                        <span>${item.price.toLocaleString('ru-RU')} 💎</span>
-                    </button>
-                `;
-
-                grid.appendChild(div);
-            });
-        }
-
-        // Admin Create Custom NFT for Market with Real Images
-        function adminCreateMarketNFT() {
-            if (!appState.currentUser.isAdmin) return;
-
-            const name = document.getElementById('adminNewNftName').value.trim();
-            const price = parseInt(document.getElementById('adminNewNftPrice').value);
-            const rarity = document.getElementById('adminNewNftRarity').value;
-            const category = document.getElementById('adminNewNftCategory').value;
-            const image = document.getElementById('adminNewNftImage').value.trim() || 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?w=300&auto=format&fit=crop&q=80';
-
-            if (!name || !price) {
-                showToast("Заполните название и цену!");
-                return;
-            }
-
-            const newNft = {
-                id: 'market_nft_' + Date.now(),
-                name,
-                price,
-                rarity,
-                category,
-                image
-            };
-
-            appState.market.unshift(newNft);
-            saveState();
-            renderMarket();
-
-            showToast(`Товар "${name}" добавлен в Маркет!`);
-            document.getElementById('adminNewNftName').value = '';
-            document.getElementById('adminNewNftPrice').value = '';
-            document.getElementById('adminNewNftImage').value = '';
-        }
-
-        function adminDeleteMarketItem(id) {
-            if (!appState.currentUser.isAdmin) return;
-            appState.market = appState.market.filter(i => i.id !== id);
-            saveState();
-            renderMarket();
-            showToast("Товар удалён из Маркета!");
-        }
-
-        function resetSlotUI(slot) {
-            const container = document.getElementById(`${slot}ItemContainer`);
-            const priceEl = document.getElementById(`${slot}ItemPrice`);
-
-            if (slot === 'source') {
-                container.innerHTML = `
-                    <div class="w-12 h-12 rounded-xl border border-dashed border-gray-600 flex items-center justify-center text-gray-500 mb-1">
-                        <i class="fa-solid fa-plus text-lg"></i>
-                    </div>
-                    <span class="text-xs text-gray-400 text-center">Из инвентаря</span>
-                `;
-            } else {
-                container.innerHTML = `
-                    <div class="w-12 h-12 rounded-xl border border-dashed border-gray-600 flex items-center justify-center text-gray-500 mb-1">
-                        <i class="fa-solid fa-bullseye text-lg"></i>
-                    </div>
-                    <span class="text-xs text-gray-400 text-center">Из каталога NFT</span>
-                `;
-            }
-
-            priceEl.classList.add('hidden');
-        }
-
-        function createItemCardHTML(item, onClickFn) {
-            const div = document.createElement('div');
-            div.className = `glass-card p-3 rounded-xl border flex flex-col items-center justify-between cursor-pointer transition-all hover:border-cyan-400/50 relative overflow-hidden`;
-            
-            let rarityColor = "#9ca3af";
-            if (item.rarity === 'rare') rarityColor = "#3b82f6";
-            if (item.rarity === 'epic') rarityColor = "#a855f7";
-            if (item.rarity === 'legendary') rarityColor = "#eab308";
-            if (item.rarity === 'mythic') rarityColor = "#ef4444";
-
-            div.style.borderColor = `${rarityColor}40`;
-
-            div.innerHTML = `
-                <div class="absolute top-0 right-0 w-12 h-12 opacity-15 rounded-full blur-lg" style="background:${rarityColor}"></div>
-                <div class="text-3xl my-2">${item.icon}</div>
-                <div class="w-full text-center">
-                    <div class="text-xs font-bold text-white truncate">${item.name}</div>
-                    <div class="text-[10px] uppercase font-bold tracking-wider" style="color:${rarityColor}">${item.rarity}</div>
-                </div>
-                <div class="mt-2 text-xs font-extrabold text-cyan-300 bg-cyan-950/60 px-2 py-0.5 rounded-md border border-cyan-500/20">
-                    ${item.price.toLocaleString('ru-RU')} 💎
-                </div>
-            `;
-
-            div.addEventListener('click', onClickFn);
-            return div;
-        }
-
-        // ================= INVENTORY & MARKET RENDERERS =================
-
-        function renderInventory() {
-            const grid = document.getElementById('inventoryGrid');
-            const countEl = document.getElementById('inventoryCount');
-
-            countEl.textContent = appState.inventory.length;
-            grid.innerHTML = '';
-
-            if (appState.inventory.length === 0) {
-                grid.innerHTML = `
-                    <div class="col-span-full py-16 flex flex-col items-center justify-center text-center">
-                        <div class="w-16 h-16 rounded-full bg-gray-800/60 flex items-center justify-center text-gray-500 text-2xl mb-3">
-                            <i class="fa-solid fa-box-open"></i>
+                        <div class="text-right">
+                            <div class="text-xs font-bold font-mono ${item.isWin ? 'text-brand-neonGreen' : 'text-slate-500'}">
+                                ${item.isWin ? `+${item.payout.toLocaleString()} 🪙` : `-${item.bet} 🪙`}
+                            </div>
+                            <div class="text-[10px] text-slate-500">${item.time}</div>
                         </div>
-                        <h3 class="text-base font-bold text-white">Инвентарь пуст</h3>
-                        <p class="text-xs text-gray-400 max-w-xs mt-1 mb-4">Купите Доширак или Pepe в маркете для первой игры!</p>
-                        <button onclick="switchTab('market')" class="px-5 py-2.5 bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-extrabold text-xs rounded-xl shadow-md">
-                            Перейти в Маркет NFT
-                        </button>
                     </div>
-                `;
-                return;
+                `).join('');
             }
 
-            appState.inventory.forEach(item => {
-                const card = createItemCardHTML(item, () => {
-                    appState.selectedSourceItem = item;
-                    switchTab('upgrader');
-                    updateSlotUI('source', item);
-                    calculateChance();
+            updateHouseEdge(val) {
+                this.state.houseEdge = parseFloat(val);
+                document.getElementById('admin-house-edge-val').innerText = `${val}%`;
+                this.updateCalculations();
+            }
+
+            toggleMaintenance(status) {
+                this.state.isMaintenance = status;
+                const banner = document.getElementById('maintenance-banner');
+                const gameTab = document.getElementById('tab-game');
+
+                if (status) {
+                    banner.classList.remove('hidden');
+                    this.showToast('Технические работы включены');
+                } else {
+                    banner.classList.add('hidden');
+                    this.showToast('Технические работы отключены');
+                }
+                this.triggerHaptic('heavy');
+            }
+
+            adminModifyBalance(isAdd) {
+                const input = document.getElementById('admin-balance-input');
+                const val = parseInt(input.value);
+                if (!val || val <= 0) {
+                    this.showToast('Введите сумму');
+                    return;
+                }
+
+                if (isAdd) {
+                    this.state.balance += val;
+                    this.showToast(`Выдано +${val} монет`);
+                } else {
+                    this.state.balance = Math.max(0, this.state.balance - val);
+                    this.showToast(`Списано -${val} монет`);
+                }
+                input.value = '';
+                this.updateBalanceDisplay();
+                this.triggerHaptic('medium');
+            }
+
+            updateAdminStats() {
+                document.getElementById('stat-total-players').innerText = this.state.stats.totalPlayers;
+                document.getElementById('stat-total-volume').innerText = `${this.state.stats.totalVolume.toLocaleString()} 🪙`;
+                
+                const profitEl = document.getElementById('stat-house-profit');
+                const profit = this.state.stats.houseProfit;
+                profitEl.innerText = `${profit >= 0 ? '+' : ''}${profit.toLocaleString()} 🪙`;
+                profitEl.className = `text-lg font-mono font-bold ${profit >= 0 ? 'text-brand-neonGreen' : 'text-red-400'}`;
+
+                document.getElementById('stat-total-rounds').innerText = this.state.stats.totalRounds;
+            }
+
+            switchTab(tab) {
+                this.sfx.playClick();
+                this.triggerHaptic('light');
+
+                // Tabs Visibility
+                ['game', 'history', 'admin'].forEach(t => {
+                    const sec = document.getElementById(`tab-${t}`);
+                    const nav = document.getElementById(`nav-${t}`);
+
+                    if (t === tab) {
+                        sec.classList.remove('hidden');
+                        nav.className = "flex flex-col items-center justify-center py-1 rounded-xl text-brand-neonBlue transition font-bold";
+                    } else {
+                        sec.classList.add('hidden');
+                        nav.className = "flex flex-col items-center justify-center py-1 rounded-xl text-slate-400 hover:text-slate-200 transition font-normal";
+                    }
                 });
-                grid.appendChild(card);
-            });
-        }
 
-        let currentMarketFilter = 'all';
-
-        function filterMarket(category) {
-            currentMarketFilter = category;
-            document.querySelectorAll('.market-filter-btn').forEach(btn => {
-                btn.className = "market-filter-btn bg-gray-800 text-gray-300 px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap";
-            });
-            event.target.className = "market-filter-btn active bg-cyan-500 text-black px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap shadow-md";
-            renderMarket();
-        }
-
-        function renderMarket() {
-            const grid = document.getElementById('marketGrid');
-            grid.innerHTML = '';
-
-            const itemsToDisplay = currentMarketFilter === 'all' 
-                ? appState.market 
-                : appState.market.filter(i => i.category === currentMarketFilter);
-
-            itemsToDisplay.forEach(item => {
-                const div = document.createElement('div');
-                let rarityColor = "#9ca3af";
-                if (item.rarity === 'rare') rarityColor = "#3b82f6";
-                if (item.rarity === 'epic') rarityColor = "#a855f7";
-                if (item.rarity === 'legendary') rarityColor = "#eab308";
-                if (item.rarity === 'mythic') rarityColor = "#ef4444";
-
-                div.className = `glass-card p-3 rounded-2xl border flex flex-col items-center justify-between relative overflow-hidden`;
-                div.style.borderColor = `${rarityColor}40`;
-
-                div.innerHTML = `
-                    <div class="text-3xl my-3">${item.icon}</div>
-                    <div class="w-full text-center mb-2">
-                        <div class="text-xs font-bold text-white truncate">${item.name}</div>
-                        <div class="text-[10px] uppercase font-extrabold tracking-wide" style="color:${rarityColor}">${item.rarity}</div>
-                    </div>
-                    <button onclick="buyMarketItem('${item.id}')" class="w-full py-2 bg-cyan-500/15 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/40 font-extrabold text-xs rounded-xl flex items-center justify-center gap-1 transition-all">
-                        <span>Купить</span>
-                        <span>${item.price.toLocaleString('ru-RU')} 💎</span>
-                    </button>
-                `;
-
-                grid.appendChild(div);
-            });
-        }
-
-        function buyMarketItem(itemId) {
-            const item = appState.market.find(i => i.id === itemId);
-            if (!item) return;
-
-            if (appState.currentUser.balance < item.price) {
-                showToast("Недостаточно 💎 ICES для покупки!");
-                return;
+                if (tab === 'history') this.renderHistory();
+                if (tab === 'admin') this.updateAdminStats();
             }
 
-            appState.currentUser.balance -= item.price;
-            const newInventoryItem = { ...item, instanceId: 'inv_' + Date.now() };
-            appState.inventory.unshift(newInventoryItem);
-
-            saveState();
-            renderUserInfo();
-            renderInventory();
-            playSound('win');
-            showToast(`Успешно куплено: ${item.name}!`);
-        }
-
-        // ================= ADMIN PANEL FUNCTIONS (@yung_roxy) =================
-
-        function adminGrantBalance() {
-            if (!appState.currentUser.isAdmin) return;
-            const amountInput = parseInt(document.getElementById('adminAmount').value);
-
-            if (!amountInput || amountInput <= 0) {
-                showToast("Введите сумму!");
-                return;
+            showToast(msg) {
+                const toast = document.getElementById('toast');
+                toast.innerText = msg;
+                toast.classList.remove('opacity-0', 'pointer-events-none');
+                setTimeout(() => {
+                    toast.classList.add('opacity-0', 'pointer-events-none');
+                }, 2200);
             }
-
-            appState.currentUser.balance += amountInput;
-            saveState();
-            renderUserInfo();
-
-            showToast(`Начислено +${amountInput.toLocaleString('ru-RU')} 💎 ICES!`);
-            document.getElementById('adminAmount').value = '';
         }
 
-        function populateAdminNFTDropdown() {
-            const select = document.getElementById('adminNftSelect');
-            if (!select) return;
-            select.innerHTML = '';
-
-            appState.market.forEach(item => {
-                const opt = document.createElement('option');
-                opt.value = item.id;
-                opt.textContent = `${item.name} (${item.price} ICES)`;
-                select.appendChild(opt);
-            });
-        }
-
-        function adminGrantNFT() {
-            if (!appState.currentUser.isAdmin) return;
-            const selectVal = document.getElementById('adminNftSelect').value;
-            const item = appState.market.find(i => i.id === selectVal);
-
-            if (!item) return;
-
-            const newItem = { ...item, instanceId: 'inv_' + Date.now() };
-            appState.inventory.unshift(newItem);
-            saveState();
-            renderInventory();
-
-            showToast(`NFT "${item.name}" выдан в инвентарь!`);
-        }
-
-        function adminCreateMarketNFT() {
-            if (!appState.currentUser.isAdmin) return;
-
-            const name = document.getElementById('adminNewNftName').value.trim();
-            const price = parseInt(document.getElementById('adminNewNftPrice').value);
-            const rarity = document.getElementById('adminNewNftRarity').value;
-            const category = document.getElementById('adminNewNftCategory').value;
-            const icon = document.getElementById('adminNewNftIcon').value.trim() || '🍜';
-
-            if (!name || !price) {
-                showToast("Заполните имя и цену!");
-                return;
-            }
-
-            const newNft = {
-                id: 'custom_nft_' + Date.now(),
-                name,
-                price,
-                rarity,
-                category,
-                icon,
-                color: rarity === 'mythic' ? '#ef4444' : rarity === 'legendary' ? '#eab308' : '#3b82f6'
-            };
-
-            appState.market.unshift(newNft);
-            saveState();
-            renderMarket();
-            populateAdminNFTDropdown();
-
-            showToast(`Добавлен новый NFT в Маркет: ${name}`);
-            document.getElementById('adminNewNftName').value = '';
-            document.getElementById('adminNewNftPrice').value = '';
-        }
-
-        function showToast(msg) {
-            const toast = document.createElement('div');
-            toast.className = "fixed top-16 left-1/2 -translate-x-1/2 z-50 bg-gray-900/95 text-cyan-300 border border-cyan-500/40 px-4 py-2 rounded-xl text-xs font-bold shadow-2xl backdrop-blur-md transition-all duration-300 opacity-0 transform -translate-y-2";
-            toast.textContent = msg;
-
-            document.body.appendChild(toast);
-
-            setTimeout(() => {
-                toast.classList.remove('opacity-0', '-translate-y-2');
-            }, 10);
-
-            setTimeout(() => {
-                toast.classList.add('opacity-0', '-translate-y-2');
-                setTimeout(() => toast.remove(), 300);
-            }, 2500);
-        }
-
-        window.addEventListener('load', () => {
-            initApp();
+        // Initialize App on DOM Loaded
+        let app;
+        window.addEventListener('DOMContentLoaded', () => {
+            app = new App();
+            lucide.createIcons();
         });
     </script>
 </body>
