@@ -1,958 +1,236 @@
 <!DOCTYPE html>
-<html lang="ru" class="dark">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>@yung_roxy — Cyberpunk Upgrader</title>
-    <!-- Telegram WebApp SDK -->
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Games Mini App</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        brand: {
-                            purple: '#9d4edd',
-                            neonPink: '#ff007f',
-                            neonBlue: '#00f0ff',
-                            neonGreen: '#00ff66',
-                            gold: '#ffd700',
-                            darkBg: '#0b0c10',
-                            cardBg: 'rgba(22, 27, 34, 0.75)',
-                            cardBorder: 'rgba(157, 78, 221, 0.3)'
-                        }
-                    },
-                    boxShadow: {
-                        'neon-purple': '0 0 20px rgba(157, 78, 221, 0.5)',
-                        'neon-blue': '0 0 20px rgba(0, 240, 255, 0.5)',
-                        'neon-pink': '0 0 20px rgba(255, 0, 127, 0.6)',
-                        'neon-green': '0 0 20px rgba(0, 255, 102, 0.6)',
-                        'gold-glow': '0 0 15px rgba(255, 215, 0, 0.5)'
-                    },
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                        mono: ['JetBrains Mono', 'monospace']
-                    }
-                }
-            }
-        }
-    </script>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        /* CSS Animations & Glassmorphism */
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&family=JetBrains+Mono:wght@700&display=swap');
-
         body {
-            background-color: #07080b;
-            color: #f1f5f9;
-            font-family: 'Inter', sans-serif;
-            touch-action: manipulation;
-            -webkit-tap-highlight-color: transparent;
-            overflow-x: hidden;
-            background-image: 
-                radial-gradient(circle at 15% 15%, rgba(157, 78, 221, 0.15) 0%, transparent 40%),
-                radial-gradient(circle at 85% 85%, rgba(0, 240, 255, 0.12) 0%, transparent 40%);
+            background-color: #0f172a;
+            color: #f8fafc;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
-
-        .glass-card {
-            background: rgba(18, 22, 32, 0.7);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(157, 78, 221, 0.25);
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-        }
-
-        .glass-card-interactive {
-            transition: all 0.2s ease-in-out;
-        }
-        .glass-card-interactive:active {
-            transform: scale(0.98);
-        }
-
-        /* Custom Styling for Slider */
-        input[type=range] {
-            -webkit-appearance: none;
-            width: 100%;
-            background: transparent;
-        }
-
-        input[type=range]:focus {
-            outline: none;
-        }
-
-        input[type=range]::-webkit-slider-runnable-track {
-            width: 100%;
-            height: 10px;
-            cursor: pointer;
-            background: #1e293b;
-            border-radius: 999px;
-            border: 1px solid rgba(157, 78, 221, 0.3);
-        }
-
-        input[type=range]::-webkit-slider-thumb {
-            height: 24px;
-            width: 24px;
-            border-radius: 50%;
-            background: #00f0ff;
-            box-shadow: 0 0 15px #00f0ff;
-            cursor: pointer;
-            -webkit-appearance: none;
-            margin-top: -7px;
-            transition: transform 0.1s ease;
-        }
-
-        input[type=range]::-webkit-slider-thumb:hover {
-            transform: scale(1.15);
-        }
-
-        /* Neon Pulse Animation */
-        @keyframes neonPulse {
-            0%, 100% { filter: drop-shadow(0 0 8px rgba(157, 78, 221, 0.8)); }
-            50% { filter: drop-shadow(0 0 18px rgba(0, 240, 255, 0.9)); }
-        }
-
-        .neon-pulse-glow {
-            animation: neonPulse 3s infinite alternate;
-        }
-
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar {
-            width: 4px;
-        }
-        ::-webkit-scrollbar-track {
-            background: rgba(15, 23, 42, 0.6);
-        }
-        ::-webkit-scrollbar-thumb {
-            background: rgba(157, 78, 221, 0.5);
-            border-radius: 4px;
-        }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
     </style>
 </head>
-<body class="min-h-screen pb-20 select-none flex flex-col justify-between">
+<body class="min-h-screen flex flex-col justify-between pb-20">
 
-    <!-- TOP HEADER -->
-    <header class="sticky top-0 z-40 w-full glass-card border-b border-brand-purple/20 px-4 py-3 shadow-lg">
-        <div class="max-w-md mx-auto flex items-center justify-between">
-            <!-- User Info & Avatar -->
-            <div class="flex items-center space-x-3">
-                <div class="relative">
-                    <img id="user-avatar" src="https://placehold.co/100x100/9d4edd/ffffff?text=ROXY" class="w-10 h-10 rounded-full border-2 border-brand-neonBlue shadow-neon-blue object-cover" alt="Avatar">
-                    <span class="absolute bottom-0 right-0 w-3 h-3 bg-brand-neonGreen rounded-full border-2 border-slate-900"></span>
-                </div>
-                <div>
-                    <div class="flex items-center gap-1.5">
-                        <span id="user-name" class="font-bold text-sm text-white tracking-wide">@yung_roxy</span>
-                        <span id="admin-badge" class="hidden text-[10px] bg-brand-purple/40 text-brand-neonPink border border-brand-neonPink/50 px-1.5 py-0.5 rounded font-mono uppercase font-semibold">ADMIN</span>
-                    </div>
-                    <div class="text-[11px] text-slate-400 flex items-center gap-1">
-                        <i data-lucide="zap" class="w-3 h-3 text-brand-gold"></i>
-                        <span id="haptic-status">Haptic: OK</span>
-                    </div>
-                </div>
+    <!-- Верхняя панель (Шапка) -->
+    <header class="bg-slate-900/80 backdrop-blur-md sticky top-0 z-50 px-4 py-3 border-b border-slate-800 flex justify-between items-center">
+        <div class="flex items-center space-x-2">
+            <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-purple-500 to-pink-500 flex items-center justify-center font-bold text-sm">G</div>
+            <div>
+                <h1 class="text-sm font-semibold leading-tight">Games App</h1>
+                <p class="text-xs text-emerald-400">● 2,910 активных</p>
             </div>
-
-            <!-- Balance Widget & Quick Test Top-up -->
-            <div class="flex items-center space-x-2">
-                <div class="glass-card bg-slate-900/80 px-3 py-1.5 rounded-xl border border-brand-gold/30 flex items-center gap-2">
-                    <i data-lucide="coins" class="w-4 h-4 text-brand-gold animate-bounce"></i>
-                    <span id="user-balance" class="font-mono font-extrabold text-base text-brand-gold">1,000</span>
-                </div>
-                <button onclick="app.quickTopUp()" class="bg-brand-purple/30 hover:bg-brand-purple/50 border border-brand-purple text-brand-neonBlue p-2 rounded-xl active:scale-95 transition" title="+500 Монет">
-                    <i data-lucide="plus" class="w-4 h-4"></i>
-                </button>
-            </div>
+        </div>
+        <div class="bg-slate-800 px-3 py-1.5 rounded-full flex items-center space-x-1.5 border border-slate-700">
+            <span class="text-xs">💎</span>
+            <span id="user-balance" class="text-xs font-bold text-amber-400">6,000,000 Айсов</span>
         </div>
     </header>
 
-    <!-- TEST MODE ROLE TOGGLE BANNER (For Demonstration/Admin Preview) -->
-    <div class="bg-slate-900/90 border-b border-slate-800 px-4 py-1.5 text-xs text-slate-300 flex items-center justify-between max-w-md mx-auto w-full">
-        <span class="flex items-center gap-1"><i data-lucide="shield-alert" class="w-3.5 h-3.5 text-brand-neonPink"></i> Демо режим ролей:</span>
-        <div class="flex gap-2">
-            <button id="role-user-btn" onclick="app.switchRole('user')" class="px-2 py-0.5 rounded text-[11px] bg-brand-purple text-white font-semibold">Игрок</button>
-            <button id="role-admin-btn" onclick="app.switchRole('admin')" class="px-2 py-0.5 rounded text-[11px] bg-slate-800 text-slate-400 hover:text-white">Админ @yung_roxy</button>
-        </div>
-    </div>
+    <!-- Основной контент -->
+    <main class="p-4 max-w-md mx-auto w-full flex-grow">
 
-    <!-- MAIN CONTAINER WITH TABS -->
-    <main class="max-w-md mx-auto w-full px-4 pt-3 flex-1">
-        
-        <!-- MAINTENANCE BANNER (Hidden by default) -->
-        <div id="maintenance-banner" class="hidden glass-card border-red-500/50 bg-red-950/40 p-6 rounded-2xl text-center my-4 animate-pulse">
-            <i data-lucide="wrench" class="w-12 h-12 text-red-400 mx-auto mb-2"></i>
-            <h2 class="text-xl font-bold text-red-400 mb-1">Технические работы</h2>
-            <p class="text-xs text-slate-300">Апгрейдер временно недоступен. Администратор @yung_roxy проводит обновление системы.</p>
-        </div>
-
-        <!-- SECTION 1: UPGRADER GAME TAB -->
-        <section id="tab-game" class="space-y-4">
+        <!-- Вкладка: Маркет (NFT) -->
+        <div id="tab-market" class="tab-content active space-y-4">
+            <div class="flex justify-between items-center">
+                <h2 class="text-lg font-bold">🛒 Маркет NFT</h2>
+                <span class="text-xs bg-purple-900/50 text-purple-300 px-2.5 py-1 rounded-full border border-purple-700/50">Пассивный доход</span>
+            </div>
+            <!-- Поиск -->
+            <input type="text" placeholder="Быстрый поиск подарков..." class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-purple-500">
             
-            <!-- CANVAS VISUALIZER CARD -->
-            <div class="glass-card rounded-2xl p-4 relative overflow-hidden flex flex-col items-center justify-center">
-                <!-- Glowing Ambient Canvas BG -->
-                <div class="absolute inset-0 bg-gradient-to-b from-brand-purple/10 to-transparent pointer-events-none"></div>
-
-                <!-- Canvas Visualizer Rotor -->
-                <div class="relative w-64 h-64 flex items-center justify-center">
-                    <canvas id="upgrader-canvas" width="250" height="250" class="w-full h-full"></canvas>
-                    
-                    <!-- Center Overlay Info -->
-                    <div class="absolute flex flex-col items-center justify-center pointer-events-none text-center">
-                        <span class="text-[11px] text-slate-400 tracking-wider uppercase font-semibold">Множитель</span>
-                        <span id="display-multiplier" class="text-3xl font-mono font-black text-brand-neonBlue neon-pulse-glow">2.00x</span>
-                        <div class="mt-1 flex items-center gap-1 text-[11px] bg-slate-900/80 px-2 py-0.5 rounded-full border border-slate-700">
-                            <span class="text-slate-400">Шанс:</span>
-                            <span id="display-chance" class="font-bold text-brand-neonGreen">47.5%</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Game Result Announcement Banner -->
-                <div id="result-message" class="h-8 mt-2 flex items-center justify-center font-bold text-sm tracking-wide transition-all opacity-0">
-                    <span class="px-4 py-1 rounded-full border bg-slate-900/90 text-slate-300">Сделайте ставку</span>
-                </div>
-            </div>
-
-            <!-- CONTROLS CARD -->
-            <div class="glass-card rounded-2xl p-4 space-y-4">
-                
-                <!-- MULTIPLIER & CHANCE SLIDER -->
-                <div class="space-y-2">
-                    <div class="flex justify-between text-xs font-semibold">
-                        <span class="text-slate-400">Целевой множитель</span>
-                        <span class="text-brand-neonBlue font-mono">1.10x — 100.00x</span>
-                    </div>
-
-                    <input type="range" id="multiplier-slider" min="1.1" max="100" step="0.1" value="2.0">
-                    
-                    <div class="grid grid-cols-4 gap-1.5 pt-1">
-                        <button onclick="app.setMultiplier(1.2)" class="glass-card-interactive bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700 py-1 rounded-lg text-xs font-mono">1.2x</button>
-                        <button onclick="app.setMultiplier(2.0)" class="glass-card-interactive bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700 py-1 rounded-lg text-xs font-mono">2.0x</button>
-                        <button onclick="app.setMultiplier(5.0)" class="glass-card-interactive bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700 py-1 rounded-lg text-xs font-mono">5.0x</button>
-                        <button onclick="app.setMultiplier(10.0)" class="glass-card-interactive bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700 py-1 rounded-lg text-xs font-mono">10.0x</button>
-                    </div>
-                </div>
-
-                <!-- BET AMOUNT SELECTOR -->
-                <div class="space-y-2">
-                    <div class="flex justify-between text-xs font-semibold">
-                        <span class="text-slate-400">Сумма ставки</span>
-                        <span class="text-brand-gold font-mono">Возможный выигрыш: <span id="display-payout" class="text-white">100</span> 🪙</span>
-                    </div>
-                    
-                    <div class="relative">
-                        <input type="number" id="bet-input" value="50" min="10" max="10000" class="w-full bg-slate-900/90 border border-brand-purple/40 rounded-xl py-2.5 px-3 pr-12 font-mono font-bold text-lg text-white focus:outline-none focus:border-brand-neonBlue transition">
-                        <span class="absolute right-3 top-3 text-xs text-brand-gold font-bold">🪙</span>
-                    </div>
-
-                    <!-- Quick Bet Buttons -->
-                    <div class="grid grid-cols-6 gap-1 text-xs font-mono font-semibold">
-                        <button onclick="app.adjustBet('min')" class="glass-card-interactive bg-slate-800/70 border border-slate-700 py-1.5 rounded-lg">MIN</button>
-                        <button onclick="app.adjustBet('+10')" class="glass-card-interactive bg-slate-800/70 border border-slate-700 py-1.5 rounded-lg">+10</button>
-                        <button onclick="app.adjustBet('+50')" class="glass-card-interactive bg-slate-800/70 border border-slate-700 py-1.5 rounded-lg">+50</button>
-                        <button onclick="app.adjustBet('half')" class="glass-card-interactive bg-slate-800/70 border border-slate-700 py-1.5 rounded-lg">/2</button>
-                        <button onclick="app.adjustBet('double')" class="glass-card-interactive bg-slate-800/70 border border-slate-700 py-1.5 rounded-lg">x2</button>
-                        <button onclick="app.adjustBet('max')" class="glass-card-interactive bg-slate-800/70 border border-slate-700 py-1.5 rounded-lg text-brand-gold">MAX</button>
-                    </div>
-                </div>
-
-                <!-- PLAY / UPGRADE BUTTON -->
-                <button id="upgrade-btn" onclick="app.playGame()" class="w-full py-4 rounded-xl font-extrabold text-lg tracking-wider text-white uppercase bg-gradient-to-r from-brand-purple via-brand-neonPink to-brand-neonBlue shadow-neon-purple hover:shadow-neon-pink active:scale-98 transition transform duration-150 flex items-center justify-center gap-2">
-                    <i data-lucide="zap" class="w-5 h-5 fill-current"></i>
-                    <span>АПГРЕЙД</span>
-                </button>
-            </div>
-        </section>
-
-        <!-- SECTION 2: HISTORY TAB -->
-        <section id="tab-history" class="hidden space-y-3">
-            <div class="flex justify-between items-center px-1">
-                <h3 class="font-bold text-sm text-slate-300 uppercase tracking-wider flex items-center gap-2">
-                    <i data-lucide="history" class="w-4 h-4 text-brand-neonBlue"></i> История последних игр
-                </h3>
-                <span class="text-xs text-slate-500">Только ваши попытки</span>
-            </div>
-
-            <div id="history-container" class="space-y-2">
-                <!-- History Items Rendered via JS -->
-            </div>
-        </section>
-
-        <!-- SECTION 3: ADMIN PANEL TAB -->
-        <section id="tab-admin" class="hidden space-y-4">
-            
-            <div class="glass-card rounded-2xl p-4 border-brand-neonPink/40">
-                <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+            <!-- Сетка товаров -->
+            <div class="grid grid-cols-2 gap-3">
+                <div class="bg-slate-800/80 border border-slate-700/60 rounded-2xl p-3 flex flex-col justify-between">
                     <div>
-                        <h2 class="font-bold text-base text-brand-neonPink flex items-center gap-2">
-                            <i data-lucide="shield-check" class="w-5 h-5"></i> Админ-панель @yung_roxy
-                        </h2>
-                        <p class="text-xs text-slate-400">Управление экономикой и системой</p>
+                        <div class="bg-slate-900 rounded-xl h-28 flex items-center justify-center text-3xl mb-2">🎁</div>
+                        <p class="text-xs text-slate-400">#13736</p>
+                        <h3 class="font-bold text-sm truncate">Big Year #13736</h3>
+                        <p class="text-xs text-emerald-400 mt-1">+4% в сутки</p>
                     </div>
-                    <span class="bg-brand-neonPink/20 text-brand-neonPink text-[10px] font-mono px-2 py-1 rounded border border-brand-neonPink/30">v1.0.4 VIP</span>
+                    <button class="mt-3 w-full bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-semibold py-2 rounded-xl transition">40k Айсов</button>
                 </div>
-
-                <!-- ADMIN STATS GRID -->
-                <div class="grid grid-cols-2 gap-2 mt-4">
-                    <div class="bg-slate-900/90 border border-slate-800 p-3 rounded-xl">
-                        <div class="text-[11px] text-slate-400">Всего игроков</div>
-                        <div id="stat-total-players" class="text-lg font-mono font-bold text-white">1</div>
+                <div class="bg-slate-800/80 border border-slate-700/60 rounded-2xl p-3 flex flex-col justify-between">
+                    <div>
+                        <div class="bg-slate-900 rounded-xl h-28 flex items-center justify-center text-3xl mb-2">🍪</div>
+                        <p class="text-xs text-slate-400">#9931</p>
+                        <h3 class="font-bold text-sm truncate">Ginger Cookie</h3>
+                        <p class="text-xs text-emerald-400 mt-1">+6% в сутки</p>
                     </div>
-                    <div class="bg-slate-900/90 border border-slate-800 p-3 rounded-xl">
-                        <div class="text-[11px] text-slate-400">Общий объем ставок</div>
-                        <div id="stat-total-volume" class="text-lg font-mono font-bold text-brand-gold">0 🪙</div>
-                    </div>
-                    <div class="bg-slate-900/90 border border-slate-800 p-3 rounded-xl">
-                        <div class="text-[11px] text-slate-400">Профит Дома (Casino Profit)</div>
-                        <div id="stat-house-profit" class="text-lg font-mono font-bold text-brand-neonGreen">+0 🪙</div>
-                    </div>
-                    <div class="bg-slate-900/90 border border-slate-800 p-3 rounded-xl">
-                        <div class="text-[11px] text-slate-400">Сыграно раундов</div>
-                        <div id="stat-total-rounds" class="text-lg font-mono font-bold text-brand-neonBlue">0</div>
-                    </div>
+                    <button class="mt-3 w-full bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-semibold py-2 rounded-xl transition">130k Айсов</button>
                 </div>
-
-                <!-- HOUSE EDGE & MAINTENANCE SETTINGS -->
-                <div class="mt-4 pt-4 border-t border-slate-800 space-y-4">
-                    
-                    <!-- House Edge Config Slider -->
-                    <div class="space-y-1.5">
-                        <div class="flex justify-between text-xs">
-                            <span class="text-slate-300 font-semibold">Комиссия системы (House Edge)</span>
-                            <span id="admin-house-edge-val" class="font-mono text-brand-neonPink font-bold">5%</span>
-                        </div>
-                        <input type="range" id="admin-house-edge-input" min="1" max="15" step="0.5" value="5" oninput="app.updateHouseEdge(this.value)">
-                        <div class="text-[10px] text-slate-500">Определяет процент преимущества платформы при расчете шанса.</div>
+                <div class="bg-slate-800/80 border border-slate-700/60 rounded-2xl p-3 flex flex-col justify-between">
+                    <div>
+                        <div class="bg-slate-900 rounded-xl h-28 flex items-center justify-center text-3xl mb-2">🔮</div>
+                        <p class="text-xs text-slate-400">#5771</p>
+                        <h3 class="font-bold text-sm truncate">Love Potion</h3>
+                        <p class="text-xs text-emerald-400 mt-1">+6% в сутки</p>
                     </div>
+                    <button class="mt-3 w-full bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-semibold py-2 rounded-xl transition">135k Айсов</button>
+                </div>
+                <div class="bg-slate-800/80 border border-slate-700/60 rounded-2xl p-3 flex flex-col justify-between">
+                    <div>
+                        <div class="bg-slate-900 rounded-xl h-28 flex items-center justify-center text-3xl mb-2">👑</div>
+                        <p class="text-xs text-slate-400">#12019</p>
+                        <h3 class="font-bold text-sm truncate">Kissed Frog</h3>
+                        <p class="text-xs text-emerald-400 mt-1">+6% в сутки</p>
+                    </div>
+                    <button class="mt-3 w-full bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-semibold py-2 rounded-xl transition">45k Айсов</button>
+                </div>
+            </div>
+        </div>
 
-                    <!-- Maintenance Toggle -->
-                    <div class="flex items-center justify-between bg-slate-900/80 p-3 rounded-xl border border-slate-800">
+        <!-- Вкладка: Игры -->
+        <div id="tab-games" class="tab-content space-y-4">
+            <h2 class="text-lg font-bold">🎮 Мини-игры и Дуэли</h2>
+            <div class="space-y-2">
+                <div class="bg-slate-800 p-3.5 rounded-xl border border-slate-700 flex justify-between items-center hover:border-purple-500 transition cursor-pointer">
+                    <div>
+                        <h3 class="font-bold text-sm">💣 Мины</h3>
+                        <p class="text-xs text-slate-400">Сыграть на ставку [сумма]</p>
+                    </div>
+                    <span class="text-xs bg-slate-700 px-3 py-1.5 rounded-lg">Играть</span>
+                </div>
+                <div class="bg-slate-800 p-3.5 rounded-xl border border-slate-700 flex justify-between items-center hover:border-purple-500 transition cursor-pointer">
+                    <div>
+                        <h3 class="font-bold text-sm">🚀 Ракета</h3>
+                        <p class="text-xs text-slate-400">Успей забрать коэффициент</p>
+                    </div>
+                    <span class="text-xs bg-slate-700 px-3 py-1.5 rounded-lg">Играть</span>
+                </div>
+                <div class="bg-slate-800 p-3.5 rounded-xl border border-slate-700 flex justify-between items-center hover:border-purple-500 transition cursor-pointer">
+                    <div>
+                        <h3 class="font-bold text-sm">🎲 Кости / Рулетка</h3>
+                        <p class="text-xs text-slate-400">Классическая азартная игра</p>
+                    </div>
+                    <span class="text-xs bg-slate-700 px-3 py-1.5 rounded-lg">Играть</span>
+                </div>
+                <div class="bg-slate-800 p-3.5 rounded-xl border border-slate-700 flex justify-between items-center hover:border-purple-500 transition cursor-pointer">
+                    <div>
+                        <h3 class="font-bold text-sm">⚔️ Дуэли / Клановые дуэли</h3>
+                        <p class="text-xs text-slate-400">Сражайся с другими игроками</p>
+                    </div>
+                    <span class="text-xs bg-slate-700 px-3 py-1.5 rounded-lg">Играть</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Вкладка: Кошелёк -->
+        <div id="tab-wallet" class="tab-content space-y-4">
+            <h2 class="text-lg font-bold">💰 Крипто-кошелёк</h2>
+            <div class="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 p-5 rounded-2xl text-center space-y-2">
+                <p class="text-xs text-slate-400">Общий баланс</p>
+                <h3 class="text-2xl font-black text-white">112,801 ₽</h3>
+                <div class="flex justify-center space-x-3 pt-3">
+                    <button class="bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded-xl text-xs font-semibold">↑ Отправить</button>
+                    <button class="bg-purple-600 hover:bg-purple-500 px-4 py-2 rounded-xl text-xs font-semibold">↓ Пополнить</button>
+                </div>
+            </div>
+
+            <div class="space-y-2">
+                <div class="bg-slate-800 p-3 rounded-xl flex justify-between items-center border border-slate-700">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 rounded-full bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold">₿</div>
                         <div>
-                            <div class="text-xs font-semibold text-white">Режим Технических Работ</div>
-                            <div class="text-[10px] text-slate-400">Заблокировать новые ставки для игроков</div>
-                        </div>
-                        <label class="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" id="maintenance-toggle" onchange="app.toggleMaintenance(this.checked)" class="sr-only peer">
-                            <div class="w-11 h-6 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-neonPink"></div>
-                        </label>
-                    </div>
-
-                    <!-- User Balance Adjustment -->
-                    <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-800 space-y-2">
-                        <div class="text-xs font-semibold text-white">Корректировка Баланса Игрока</div>
-                        <div class="flex gap-2">
-                            <input type="number" id="admin-balance-input" placeholder="Количество монет" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs font-mono text-white focus:outline-none">
-                            <button onclick="app.adminModifyBalance(true)" class="bg-brand-neonGreen/20 hover:bg-brand-neonGreen/30 text-brand-neonGreen border border-brand-neonGreen/50 px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap">+ Выдать</button>
-                            <button onclick="app.adminModifyBalance(false)" class="bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-500/50 px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap">- Списать</button>
+                            <h4 class="text-sm font-bold">Bitcoin</h4>
+                            <p class="text-xs text-slate-400">0.1844 BTC</p>
                         </div>
                     </div>
+                    <span class="text-sm font-bold">$7,887.44</span>
+                </div>
+                <div class="bg-slate-800 p-3 rounded-xl flex justify-between items-center border border-slate-700">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 rounded-full bg-purple-500/20 text-purple-400 flex items-center justify-center font-bold">Ξ</div>
+                        <div>
+                            <h4 class="text-sm font-bold">Ethereum</h4>
+                            <p class="text-xs text-slate-400">0 ETH</p>
+                        </div>
+                    </div>
+                    <span class="text-sm font-bold">$0.00</span>
+                </div>
+                <div class="bg-slate-800 p-3 rounded-xl flex justify-between items-center border border-slate-700">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center font-bold">💎</div>
+                        <div>
+                            <h4 class="text-sm font-bold">Айсы (Игровая валюта)</h4>
+                            <p class="text-xs text-slate-400">Баланс токенов</p>
+                        </div>
+                    </div>
+                    <span class="text-sm font-bold text-amber-400">6,000,000</span>
                 </div>
             </div>
+        </div>
 
-            <!-- BACKEND INTEGRATION INSTRUCTIONS CARD -->
-            <div class="glass-card rounded-2xl p-4 space-y-2 border-brand-purple/40">
-                <h3 class="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
-                    <i data-lucide="code" class="w-4 h-4 text-brand-neonBlue"></i> Руководство по интеграции Node.js
-                </h3>
-                <p class="text-[11px] text-slate-400 leading-relaxed">
-                    Для продакшена интегрируйте WebApp инициализацию с проверкой <code class="text-brand-neonBlue">initData</code> на стороне Node.js сервера через HMAC-SHA256.
-                </p>
-                <div class="bg-slate-950 p-2.5 rounded-lg font-mono text-[10px] text-slate-300 overflow-x-auto border border-slate-800">
-                    // Server-side check example<br>
-                    const crypto = require('crypto');<br>
-                    const secret = crypto.createHmac('sha256', 'WebAppData').update(BOT_TOKEN).digest();
+        <!-- Вкладка: Профиль -->
+        <div id="tab-profile" class="tab-content space-y-4">
+            <h2 class="text-lg font-bold">👤 Профиль игрока</h2>
+            <div class="bg-slate-800 p-4 rounded-2xl border border-slate-700 space-y-3">
+                <div class="flex items-center space-x-3">
+                    <div class="w-12 h-12 bg-gradient-to-tr from-cyan-500 to-blue-600 rounded-full flex items-center justify-center text-lg font-bold">R</div>
+                    <div>
+                        <h3 class="font-bold">Roxy</h3>
+                        <p class="text-xs text-slate-400">@roxy.eyes</p>
+                    </div>
+                </div>
+                <div class="pt-2 border-t border-slate-700 flex justify-between text-sm">
+                <span>Статус аккаунта:</span>
+                <span class="text-emerald-400 font-semibold">VIP / Активен</span>
                 </div>
             </div>
-        </section>
+        </div>
 
     </main>
 
-    <!-- BOTTOM NAVBAR -->
-    <nav class="fixed bottom-0 left-0 right-0 z-40 glass-card border-t border-brand-purple/20 px-4 py-2">
-        <div class="max-w-md mx-auto grid grid-cols-3 gap-2">
-            <button id="nav-game" onclick="app.switchTab('game')" class="flex flex-col items-center justify-center py-1 rounded-xl text-brand-neonBlue transition">
-                <i data-lucide="gamepad-2" class="w-5 h-5"></i>
-                <span class="text-[10px] font-bold mt-1">Апгрейдер</span>
-            </button>
-            <button id="nav-history" onclick="app.switchTab('history')" class="flex flex-col items-center justify-center py-1 rounded-xl text-slate-400 hover:text-slate-200 transition">
-                <i data-lucide="history" class="w-5 h-5"></i>
-                <span class="text-[10px] font-bold mt-1">История</span>
-            </button>
-            <button id="nav-admin" onclick="app.switchTab('admin')" class="flex flex-col items-center justify-center py-1 rounded-xl text-slate-400 hover:text-slate-200 transition">
-                <i data-lucide="shield" class="w-5 h-5"></i>
-                <span class="text-[10px] font-bold mt-1">Админка</span>
-            </button>
-        </div>
+    <!-- Нижняя навигация (Меню) -->
+    <nav class="fixed bottom-0 left-0 right-0 bg-slate-900 border-t border-slate-800 py-2 px-6 flex justify-around items-center z-50">
+        <button onclick="switchTab('market')" id="btn-market" class="nav-btn flex flex-col items-center text-purple-400">
+            <span class="text-lg">🛒</span>
+            <span class="text-[10px] mt-0.5">Маркет</span>
+        </button>
+        <button onclick="switchTab('games')" id="btn-games" class="nav-btn flex flex-col items-center text-slate-400 hover:text-purple-400 transition">
+            <span class="text-lg">🎮</span>
+            <span class="text-[10px] mt-0.5">Игры</span>
+        </button>
+        <button onclick="switchTab('wallet')" id="btn-wallet" class="nav-btn flex flex-col items-center text-slate-400 hover:text-purple-400 transition">
+            <span class="text-lg">💰</span>
+            <span class="text-[10px] mt-0.5">Кошелёк</span>
+        </button>
+        <button onclick="switchTab('profile')" id="btn-profile" class="nav-btn flex flex-col items-center text-slate-400 hover:text-purple-400 transition">
+            <span class="text-lg">👤</span>
+            <span class="text-[10px] mt-0.5">Профиль</span>
+        </button>
     </nav>
 
-    <!-- CUSTOM TOAST NOTIFICATION -->
-    <div id="toast" class="fixed top-16 left-1/2 -translate-x-1/2 z-50 glass-card px-4 py-2 rounded-xl text-xs font-semibold shadow-2xl transition-all duration-300 opacity-0 pointer-events-none border border-brand-purple/40">
-        Уведомление
-    </div>
-
-    <!-- APPLICATION LOGIC JS -->
     <script>
-        /**
-         * Web Audio API Synthesizer for Retro Cyberpunk SFX
-         */
-        class SoundFX {
-            constructor() {
-                this.ctx = null;
-            }
+        function switchTab(tabName) {
+            // Скрыть все вкладки
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            // Показать нужную
+            document.getElementById('tab-' + tabName).classList.add('active');
 
-            init() {
-                if (!this.ctx) {
-                    const AudioContext = window.AudioContext || window.webkitAudioContext;
-                    if (AudioContext) this.ctx = new AudioContext();
-                }
-            }
-
-            playClick() {
-                if (!this.ctx) return;
-                const osc = this.ctx.createOscillator();
-                const gain = this.ctx.createGain();
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(800, this.ctx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(400, this.ctx.currentTime + 0.05);
-                gain.gain.setValueAtTime(0.1, this.ctx.currentTime);
-                gain.gain.linearRampToValueAtTime(0.01, this.ctx.currentTime + 0.05);
-                osc.connect(gain);
-                gain.connect(this.ctx.destination);
-                osc.start();
-                osc.stop(this.ctx.currentTime + 0.05);
-            }
-
-            playTick() {
-                if (!this.ctx) return;
-                const osc = this.ctx.createOscillator();
-                const gain = this.ctx.createGain();
-                osc.type = 'triangle';
-                osc.frequency.setValueAtTime(300 + Math.random() * 200, this.ctx.currentTime);
-                gain.gain.setValueAtTime(0.04, this.ctx.currentTime);
-                gain.gain.linearRampToValueAtTime(0.001, this.ctx.currentTime + 0.03);
-                osc.connect(gain);
-                gain.connect(this.ctx.destination);
-                osc.start();
-                osc.stop(this.ctx.currentTime + 0.03);
-            }
-
-            playWin() {
-                if (!this.ctx) return;
-                const now = this.ctx.currentTime;
-                const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
-                notes.forEach((freq, idx) => {
-                    const osc = this.ctx.createOscillator();
-                    const gain = this.ctx.createGain();
-                    osc.type = 'square';
-                    osc.frequency.setValueAtTime(freq, now + idx * 0.08);
-                    gain.gain.setValueAtTime(0.08, now + idx * 0.08);
-                    gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.08 + 0.25);
-                    osc.connect(gain);
-                    gain.connect(this.ctx.destination);
-                    osc.start(now + idx * 0.08);
-                    osc.stop(now + idx * 0.08 + 0.25);
-                });
-            }
-
-            playLoss() {
-                if (!this.ctx) return;
-                const now = this.ctx.currentTime;
-                const osc = this.ctx.createOscillator();
-                const gain = this.ctx.createGain();
-                osc.type = 'sawtooth';
-                osc.frequency.setValueAtTime(220, now);
-                osc.frequency.linearRampToValueAtTime(110, now + 0.3);
-                gain.gain.setValueAtTime(0.1, now);
-                gain.gain.linearRampToValueAtTime(0.01, now + 0.3);
-                osc.connect(gain);
-                gain.connect(this.ctx.destination);
-                osc.start(now);
-                osc.stop(now + 0.3);
-            }
+            // Сбросить стили кнопок навигации
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('text-purple-400');
+                btn.classList.add('text-slate-400');
+            });
+            // Подсветить активную кнопку
+            const activeBtn = document.getElementById('btn-' + tabName);
+            activeBtn.classList.remove('text-slate-400');
+            activeBtn.classList.add('text-purple-400');
         }
 
-        /**
-         * Upgrader Application Logic & State Management
-         */
-        class App {
-            constructor() {
-                this.tg = window.Telegram?.WebApp;
-                this.sfx = new SoundFX();
-                
-                // Application State
-                this.state = {
-                    balance: 1000,
-                    userRole: 'user', // 'user' or 'admin'
-                    multiplier: 2.0,
-                    betAmount: 50,
-                    houseEdge: 5.0, // 5% platform edge
-                    isMaintenance: false,
-                    isPlaying: false,
-                    history: [],
-                    
-                    // Admin Stats
-                    stats: {
-                        totalPlayers: 1,
-                        totalVolume: 0,
-                        houseProfit: 0,
-                        totalRounds: 0
-                    }
-                };
-
-                // Canvas State
-                this.canvas = document.getElementById('upgrader-canvas');
-                this.ctx = this.canvas.getContext('2d');
-                this.currentAngle = 0;
-                this.animFrame = null;
-
-                this.initTelegramApp();
-                this.bindEvents();
-                this.renderCanvas(0);
-                this.updateCalculations();
-                this.switchTab('game');
-            }
-
-            initTelegramApp() {
-                if (this.tg) {
-                    this.tg.ready();
-                    this.tg.expand();
-                    
-                    // Populate User Data from Telegram WebApp
-                    const user = this.tg.initDataUnsafe?.user;
-                    if (user) {
-                        document.getElementById('user-name').innerText = `@${user.username || user.first_name}`;
-                        if (user.photo_url) {
-                            document.getElementById('user-avatar').src = user.photo_url;
-                        }
-                    }
-
-                    // Check if User is Admin (Simulated whitelist check for @yung_roxy)
-                    if (user && (user.username === 'yung_roxy' || user.id === 123456789)) {
-                        this.switchRole('admin');
-                    }
-                }
-            }
-
-            triggerHaptic(type = 'light') {
-                if (this.tg && this.tg.HapticFeedback) {
-                    try {
-                        if (type === 'success') this.tg.HapticFeedback.notificationOccurred('success');
-                        else if (type === 'error') this.tg.HapticFeedback.notificationOccurred('error');
-                        else if (type === 'medium') this.tg.HapticFeedback.impactOccurred('medium');
-                        else if (type === 'heavy') this.tg.HapticFeedback.impactOccurred('heavy');
-                        else this.tg.HapticFeedback.impactOccurred('light');
-                    } catch (e) {
-                        console.log('Haptic error', e);
-                    }
-                }
-            }
-
-            switchRole(role) {
-                this.state.userRole = role;
-                const adminBadge = document.getElementById('admin-badge');
-                const roleUserBtn = document.getElementById('role-user-btn');
-                const roleAdminBtn = document.getElementById('role-admin-btn');
-
-                if (role === 'admin') {
-                    adminBadge.classList.remove('hidden');
-                    roleAdminBtn.className = "px-2 py-0.5 rounded text-[11px] bg-brand-neonPink text-white font-semibold shadow-neon-pink";
-                    roleUserBtn.className = "px-2 py-0.5 rounded text-[11px] bg-slate-800 text-slate-400 hover:text-white";
-                    this.showToast('Режим администратора активирован');
-                } else {
-                    adminBadge.classList.add('hidden');
-                    roleUserBtn.className = "px-2 py-0.5 rounded text-[11px] bg-brand-purple text-white font-semibold";
-                    roleAdminBtn.className = "px-2 py-0.5 rounded text-[11px] bg-slate-800 text-slate-400 hover:text-white";
-                    this.showToast('Режим игрока активирован');
-                }
-            }
-
-            bindEvents() {
-                // Multiplier slider listener
-                const slider = document.getElementById('multiplier-slider');
-                slider.addEventListener('input', (e) => {
-                    this.setMultiplier(parseFloat(e.target.value));
-                    this.sfx.playTick();
-                });
-
-                // Bet input listener
-                const betInput = document.getElementById('bet-input');
-                betInput.addEventListener('input', (e) => {
-                    let val = parseInt(e.target.value) || 0;
-                    this.state.betAmount = val;
-                    this.updateCalculations();
-                });
-
-                // Touch/Audio Init on First Click
-                document.body.addEventListener('click', () => {
-                    this.sfx.init();
-                }, { once: true });
-            }
-
-            setMultiplier(val) {
-                this.state.multiplier = Math.min(Math.max(val, 1.1), 100);
-                document.getElementById('multiplier-slider').value = this.state.multiplier;
-                this.updateCalculations();
-                this.triggerHaptic('light');
-            }
-
-            adjustBet(action) {
-                this.sfx.playClick();
-                this.triggerHaptic('light');
-                let current = this.state.betAmount;
-
-                switch (action) {
-                    case 'min': current = 10; break;
-                    case '+10': current += 10; break;
-                    case '+50': current += 50; break;
-                    case 'half': current = Math.max(10, Math.floor(current / 2)); break;
-                    case 'double': current = current * 2; break;
-                    case 'max': current = this.state.balance; break;
-                }
-
-                this.state.betAmount = current;
-                document.getElementById('bet-input').value = current;
-                this.updateCalculations();
-            }
-
-            updateCalculations() {
-                // Win Chance Formula with House Edge: Chance % = (100 / Multiplier) * (1 - HouseEdge / 100)
-                const rawChance = (100 / this.state.multiplier) * (1 - (this.state.houseEdge / 100));
-                const chance = Math.max(0.1, Math.min(95, rawChance)).toFixed(2);
-                
-                const payout = Math.floor(this.state.betAmount * this.state.multiplier);
-
-                document.getElementById('display-multiplier').innerText = `${this.state.multiplier.toFixed(2)}x`;
-                document.getElementById('display-chance').innerText = `${chance}%`;
-                document.getElementById('display-payout').innerText = payout.toLocaleString();
-
-                this.renderCanvas(0); // Update rotor visuals for target chance
-            }
-
-            /**
-             * Renders Cyberpunk Neon Canvas Rotor
-             */
-            renderCanvas(pointerAngle = 0) {
-                const width = this.canvas.width;
-                const height = this.canvas.height;
-                const cx = width / 2;
-                const cy = height / 2;
-                const radius = 95;
-
-                this.ctx.clearRect(0, 0, width, height);
-
-                // Win Chance Arc Calculation
-                const winChanceRatio = (100 / this.state.multiplier) * (1 - (this.state.houseEdge / 100)) / 100;
-                const winAngle = winChanceRatio * Math.PI * 2;
-
-                // 1. Draw Background Track (Loss Sector - Red/Dark Purple)
-                this.ctx.beginPath();
-                this.ctx.arc(cx, cy, radius, 0, Math.PI * 2);
-                this.ctx.strokeStyle = '#1e1b2e';
-                this.ctx.lineWidth = 16;
-                this.ctx.stroke();
-
-                // 2. Draw Win Sector Arc (Neon Green / Blue)
-                this.ctx.beginPath();
-                // Start from top (-90 deg)
-                const startAngle = -Math.PI / 2;
-                const endAngle = startAngle + winAngle;
-                this.ctx.arc(cx, cy, radius, startAngle, endAngle);
-                
-                const grad = this.ctx.createLinearGradient(0, 0, width, height);
-                grad.addColorStop(0, '#00f0ff');
-                grad.addColorStop(1, '#00ff66');
-                
-                this.ctx.strokeStyle = grad;
-                this.ctx.lineWidth = 16;
-                this.ctx.shadowColor = '#00ff66';
-                this.ctx.shadowBlur = 12;
-                this.ctx.stroke();
-                this.ctx.shadowBlur = 0; // Reset Shadow
-
-                // 3. Draw Outer Glowing Ring
-                this.ctx.beginPath();
-                this.ctx.arc(cx, cy, radius + 14, 0, Math.PI * 2);
-                this.ctx.strokeStyle = 'rgba(157, 78, 221, 0.3)';
-                this.ctx.lineWidth = 2;
-                this.ctx.stroke();
-
-                // 4. Draw Rotating Pointer Needle
-                this.ctx.save();
-                this.ctx.translate(cx, cy);
-                this.ctx.rotate(pointerAngle - Math.PI / 2);
-
-                this.ctx.beginPath();
-                this.ctx.moveTo(0, -radius - 8);
-                this.ctx.lineTo(-8, -radius + 15);
-                this.ctx.lineTo(8, -radius + 15);
-                this.ctx.closePath();
-                this.ctx.fillStyle = '#ff007f';
-                this.ctx.shadowColor = '#ff007f';
-                this.ctx.shadowBlur = 10;
-                this.ctx.fill();
-                this.ctx.restore();
-            }
-
-            playGame() {
-                if (this.state.isPlaying) return;
-
-                if (this.state.isMaintenance) {
-                    this.showToast('Технические работы! Игра приостановлена.');
-                    this.triggerHaptic('error');
-                    return;
-                }
-
-                if (this.state.betAmount <= 0 || isNaN(this.state.betAmount)) {
-                    this.showToast('Введите корректную сумму ставки!');
-                    this.triggerHaptic('error');
-                    return;
-                }
-
-                if (this.state.betAmount > this.state.balance) {
-                    this.showToast('Недостаточно монет на балансе!');
-                    this.triggerHaptic('error');
-                    return;
-                }
-
-                // Deduct Bet
-                this.state.balance -= this.state.betAmount;
-                this.updateBalanceDisplay();
-                this.state.isPlaying = true;
-
-                const btn = document.getElementById('upgrade-btn');
-                btn.disabled = true;
-                btn.classList.add('opacity-50', 'cursor-not-allowed');
-
-                const resMsg = document.getElementById('result-message');
-                resMsg.style.opacity = '0';
-
-                // Determine Win/Loss Result
-                const winChanceRatio = (100 / this.state.multiplier) * (1 - (this.state.houseEdge / 100)) / 100;
-                const randomValue = Math.random(); // 0.0 to 1.0
-                const isWin = randomValue <= winChanceRatio;
-
-                // Calculate Target Angle for Pointer
-                // Win range: 0 to winAngle. Loss range: winAngle to 2*PI.
-                let targetAngle;
-                if (isWin) {
-                    targetAngle = Math.random() * (winChanceRatio * Math.PI * 2);
-                } else {
-                    const winAngle = winChanceRatio * Math.PI * 2;
-                    targetAngle = winAngle + Math.random() * (Math.PI * 2 - winAngle);
-                }
-
-                // Animation Mechanics (Spin 3 to 5 full rotations + target angle)
-                const fullSpins = 4 * Math.PI * 2;
-                const totalAngle = fullSpins + targetAngle;
-                const duration = 2500; // 2.5s spin
-                const startTime = performance.now();
-
-                const animateSpin = (currentTime) => {
-                    const elapsed = currentTime - startTime;
-                    const progress = Math.min(elapsed / duration, 1);
-                    
-                    // Cubic Ease-Out for dramatic slowing effect
-                    const easeOut = 1 - Math.pow(1 - progress, 3);
-                    const currentAngle = easeOut * totalAngle;
-
-                    this.renderCanvas(currentAngle);
-                    this.sfx.playTick();
-                    this.triggerHaptic('light');
-
-                    if (progress < 1) {
-                        this.animFrame = requestAnimationFrame(animateSpin);
-                    } else {
-                        // Finish Animation & Process Results
-                        this.finalizeGame(isWin);
-                    }
-                };
-
-                requestAnimationFrame(animateSpin);
-            }
-
-            finalizeGame(isWin) {
-                this.state.isPlaying = false;
-                const btn = document.getElementById('upgrade-btn');
-                btn.disabled = false;
-                btn.classList.remove('opacity-50', 'cursor-not-allowed');
-
-                const payout = Math.floor(this.state.betAmount * this.state.multiplier);
-                const resMsg = document.getElementById('result-message');
-
-                if (isWin) {
-                    this.state.balance += payout;
-                    this.sfx.playWin();
-                    this.triggerHaptic('success');
-
-                    resMsg.innerHTML = `<span class="px-4 py-1 rounded-full border border-brand-neonGreen/60 bg-brand-neonGreen/20 text-brand-neonGreen shadow-neon-green">ПОБЕДА! +${payout.toLocaleString()} 🪙</span>`;
-                } else {
-                    this.sfx.playLoss();
-                    this.triggerHaptic('error');
-
-                    resMsg.innerHTML = `<span class="px-4 py-1 rounded-full border border-red-500/60 bg-red-500/20 text-red-400">ПРОИГРЫШ (-${this.state.betAmount.toLocaleString()} 🪙)</span>`;
-                }
-
-                resMsg.style.opacity = '1';
-                this.updateBalanceDisplay();
-
-                // Update Admin Stats
-                this.state.stats.totalRounds++;
-                this.state.stats.totalVolume += this.state.betAmount;
-                if (isWin) {
-                    this.state.stats.houseProfit -= (payout - this.state.betAmount);
-                } else {
-                    this.state.stats.houseProfit += this.state.betAmount;
-                }
-                this.updateAdminStats();
-
-                // Add to History
-                this.state.history.unshift({
-                    id: Date.now(),
-                    isWin,
-                    bet: this.state.betAmount,
-                    multiplier: this.state.multiplier,
-                    payout: isWin ? payout : 0,
-                    time: new Date().toLocaleTimeString().slice(0, 5)
-                });
-
-                if (this.state.history.length > 15) this.state.history.pop();
-                this.renderHistory();
-            }
-
-            updateBalanceDisplay() {
-                document.getElementById('user-balance').innerText = this.state.balance.toLocaleString();
-            }
-
-            quickTopUp() {
-                this.state.balance += 500;
-                this.updateBalanceDisplay();
-                this.sfx.playClick();
-                this.triggerHaptic('medium');
-                this.showToast('Баланс пополнен на +500 монет!');
-            }
-
-            renderHistory() {
-                const container = document.getElementById('history-container');
-                if (this.state.history.length === 0) {
-                    container.innerHTML = `<div class="text-center text-xs text-slate-500 py-6">История игр пуста</div>`;
-                    return;
-                }
-
-                container.innerHTML = this.state.history.map(item => `
-                    <div class="glass-card p-3 rounded-xl flex items-center justify-between border-l-4 ${item.isWin ? 'border-l-brand-neonGreen' : 'border-l-red-500'}">
-                        <div class="flex items-center gap-2.5">
-                            <div class="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs ${item.isWin ? 'bg-brand-neonGreen/20 text-brand-neonGreen' : 'bg-red-500/20 text-red-400'}">
-                                ${item.isWin ? 'WIN' : 'FAIL'}
-                            </div>
-                            <div>
-                                <div class="text-xs font-bold text-white font-mono">${item.multiplier.toFixed(2)}x</div>
-                                <div class="text-[10px] text-slate-400">Ставка: ${item.bet} 🪙</div>
-                            </div>
-                        </div>
-                        <div class="text-right">
-                            <div class="text-xs font-bold font-mono ${item.isWin ? 'text-brand-neonGreen' : 'text-slate-500'}">
-                                ${item.isWin ? `+${item.payout.toLocaleString()} 🪙` : `-${item.bet} 🪙`}
-                            </div>
-                            <div class="text-[10px] text-slate-500">${item.time}</div>
-                        </div>
-                    </div>
-                `).join('');
-            }
-
-            updateHouseEdge(val) {
-                this.state.houseEdge = parseFloat(val);
-                document.getElementById('admin-house-edge-val').innerText = `${val}%`;
-                this.updateCalculations();
-            }
-
-            toggleMaintenance(status) {
-                this.state.isMaintenance = status;
-                const banner = document.getElementById('maintenance-banner');
-                const gameTab = document.getElementById('tab-game');
-
-                if (status) {
-                    banner.classList.remove('hidden');
-                    this.showToast('Технические работы включены');
-                } else {
-                    banner.classList.add('hidden');
-                    this.showToast('Технические работы отключены');
-                }
-                this.triggerHaptic('heavy');
-            }
-
-            adminModifyBalance(isAdd) {
-                const input = document.getElementById('admin-balance-input');
-                const val = parseInt(input.value);
-                if (!val || val <= 0) {
-                    this.showToast('Введите сумму');
-                    return;
-                }
-
-                if (isAdd) {
-                    this.state.balance += val;
-                    this.showToast(`Выдано +${val} монет`);
-                } else {
-                    this.state.balance = Math.max(0, this.state.balance - val);
-                    this.showToast(`Списано -${val} монет`);
-                }
-                input.value = '';
-                this.updateBalanceDisplay();
-                this.triggerHaptic('medium');
-            }
-
-            updateAdminStats() {
-                document.getElementById('stat-total-players').innerText = this.state.stats.totalPlayers;
-                document.getElementById('stat-total-volume').innerText = `${this.state.stats.totalVolume.toLocaleString()} 🪙`;
-                
-                const profitEl = document.getElementById('stat-house-profit');
-                const profit = this.state.stats.houseProfit;
-                profitEl.innerText = `${profit >= 0 ? '+' : ''}${profit.toLocaleString()} 🪙`;
-                profitEl.className = `text-lg font-mono font-bold ${profit >= 0 ? 'text-brand-neonGreen' : 'text-red-400'}`;
-
-                document.getElementById('stat-total-rounds').innerText = this.state.stats.totalRounds;
-            }
-
-            switchTab(tab) {
-                this.sfx.playClick();
-                this.triggerHaptic('light');
-
-                // Tabs Visibility
-                ['game', 'history', 'admin'].forEach(t => {
-                    const sec = document.getElementById(`tab-${t}`);
-                    const nav = document.getElementById(`nav-${t}`);
-
-                    if (t === tab) {
-                        sec.classList.remove('hidden');
-                        nav.className = "flex flex-col items-center justify-center py-1 rounded-xl text-brand-neonBlue transition font-bold";
-                    } else {
-                        sec.classList.add('hidden');
-                        nav.className = "flex flex-col items-center justify-center py-1 rounded-xl text-slate-400 hover:text-slate-200 transition font-normal";
-                    }
-                });
-
-                if (tab === 'history') this.renderHistory();
-                if (tab === 'admin') this.updateAdminStats();
-            }
-
-            showToast(msg) {
-                const toast = document.getElementById('toast');
-                toast.innerText = msg;
-                toast.classList.remove('opacity-0', 'pointer-events-none');
-                setTimeout(() => {
-                    toast.classList.add('opacity-0', 'pointer-events-none');
-                }, 2200);
-            }
+        // Инициализация Telegram WebApp при наличии
+        if (window.Telegram && window.Telegram.WebApp) {
+            window.Telegram.WebApp.ready();
+            window.Telegram.WebApp.expand();
         }
-
-        // Initialize App on DOM Loaded
-        let app;
-        window.addEventListener('DOMContentLoaded', () => {
-            app = new App();
-            lucide.createIcons();
-        });
     </script>
 </body>
 </html>
